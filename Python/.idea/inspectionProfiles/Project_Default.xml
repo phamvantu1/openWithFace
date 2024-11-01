@@ -1,0 +1,26 @@
+<component name="InspectionProjectProfileManager">
+  <profile version="1.0">
+    <option name="myName" value="Project Default" />
+    <inspection_tool class="PyPackageRequirementsInspection" enabled="false" level="WARNING" enabled_by_default="false">
+      <option name="ignoredPackages">
+        <value>
+          <list size="0" />
+        </value>
+      </option>
+    </inspection_tool>
+    <inspection_tool class="PyUnresolvedReferencesInspection" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ignoredIdentifiers">
+        <list>
+          <option value="udp.client.esp32" />
+          <option value="picamera_mqtt.PiCameraMQTT" />
+          <option value="face_recognition" />
+          <option value="udp.TestCore.firebase_admin" />
+          <option value="restAPI.firebase" />
+          <option value="udp.client.machine" />
+          <option value="udp.TestCore.service" />
+          <option value="firebase_admin" />
+        </list>
+      </option>
+    </inspection_tool>
+  </profile>
+</component>
