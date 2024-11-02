@@ -1,0 +1,6 @@
+.vscode
+src/public/Css
+src/public/Api/
+/node_modules/
+src/test/
+src/public/video/

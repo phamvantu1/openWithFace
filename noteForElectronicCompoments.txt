@@ -1,0 +1,26 @@
+Màn LCD 1602 sơ đồ chân:
+GND-GND
+3.3v-3.3v
+SDA-D21
+SLC-D22
+
+RC522 sơ đồ chân:
+SDA-D12
+SCK-D18
+MOSI-D23
+MISO-D19
+RST-D15
+GND-GND
+3.3v-3.3v
+
+
+keypad 4*4 sơ đồ nối chân:
+byte pin_rows[ROW_NUM] = {33, 25, 26, 14}; 
+byte pin_column[COLUMN_NUM] = {27, 13, 5, 4};
+
+Servo g90 :
+D2 chân dữ liệu
+
+gnd xám  gpio13 đang làm là chân d2 not d13
+PWM data vàng 
+nguồn đỏ

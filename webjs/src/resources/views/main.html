@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Door Control</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="/socket.io/socket.io.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #e9ecef;
+            /* Slightly gray background */
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        nav {
+            width: 100%;
+            background-color: #343a40;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .menu-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo {
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        nav a:hover {
+            background-color: #0056b3;
+            color: #f4f4f4;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            color: white;
+        }
+
+        .logout-button {
+            padding: 5px 10px;
+            background-color: #ff4c4c;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .logout-button:hover {
+            background-color: #e63939;
+        }
+
+        .content {
+            padding: 20px;
+            display: flex;
+            flex-direction: row;
+            align-items: flex-start;
+            justify-content: center;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-top: 20px;
+            display: flex;
+        }
+
+        .left-section {
+            flex: 8;
+            padding-right: 20px;
+        }
+
+        .right-section {
+            flex: 4;
+            padding-left: 20px;
+            border-left: 1px solid #ddd;
+        }
+
+        h2 {
+            color: #343a40;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 5px;
+        }
+
+        .access-method {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .access-item {
+            flex: 0 0 calc(50% - 10px);
+            flex: 1;
+            margin: 10px;
+            padding: 20px;
+            background-color: #e9ecef;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .access-method div {
+            padding: 20px;
+            background-color: #e9ecef;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .access-method h3 {
+            color: #343a40;
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+
+        .access-method button {
+            padding: 10px 20px;
+            background-color: #343a40;
+            color: white;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .access-method button:hover {
+            background-color: #0056b3;
+        }
+
+        .door-status {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .door-status button {
+            margin-top: 10px;
+            padding: 15px 30px;
+            background-color: #343a40;
+            color: white;
+            font-size: 18px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            width: 100%;
+        }
+
+        .door-status button:hover {
+            background-color: #0056b3;
+        }
+
+        @media (max-width: 768px) {
+            .access-method {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .access-method div {
+                width: 100%;
+                margin-bottom: 15px;
+            }
+
+            .container {
+                flex-direction: column;
+            }
+
+            .left-section,
+            .right-section {
+                width: 100%;
+                padding: 0;
+                border: none;
+            }
+        }
+
+        .item-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <nav>
+        <div class="menu-left">
+            <div class="logo">Smart Door Control</div>
+            <a href="/">Home</a>
+            <a href="/dulieu">Dữ liệu</a>
+            <a href="#history">Lịch sử</a>
+        </div>
+
+        <div class="user-info">
+            <span>Xin chào, <%= username %>!</span>
+            <button class="logout-button">Logout</button>
+        </div>
+    </nav>
+
+    <div class="content">
+        <div class="container">
+            <div class="left-section">
+                <h2>Choose Access Method</h2>
+                <div class="access-method">
+                    <div class="access-item">
+                        <h3>Quản lý thẻ từ</h3>
+                        <div class="item-icon">
+                            <i class="fas fa-id-card" style="font-size: 50px; color: #4a90e2;"></i>
+                            <button onclick="window.location.href='/thetu'">Mở bằng thẻ từ</button>
+                        </div>
+                    </div>
+
+                    <div class="access-item">
+                        <h3>Quản lý mật khẩu</h3>
+                        <div class="item-icon">
+                            <i class="fas fa-lock" style="font-size: 50px; color: #4a90e2;"></i>
+                            <button onclick="window.location.href='/keypad'">Đặt mật khẩu</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="right-section">
+                <h2>Door Status</h2>
+                <div class="door-status">
+                    <p id="doorStatus">Door is closed</p>
+                    <button onclick="toggleDoor()">Toggle Door</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const socket = io();
+        let currentPassword = "";
+        let doorOpen = false;
+
+        function setPassword() {
+            const newPassword = document.getElementById("setPasswordInput").value;
+            if (newPassword) {
+                currentPassword = newPassword;
+                alert("Password set successfully!");
+                document.getElementById("setPasswordInput").value = "";
+            } else {
+                alert("Please enter a valid password.");
+            }
+        }
+
+        function accessByPassword() {
+            const password = document.getElementById("passwordInput").value;
+            if (password === currentPassword) {
+                alert("Password correct! Opening door...");
+                socket.emit("controlDoor", "open");
+                doorOpen = true;
+                document.getElementById("doorStatus").innerText = "Door is open";
+            } else {
+                alert("Incorrect password!");
+            }
+        }
+
+        function accessByRFID() {
+            alert("RFID card detected! Opening door...");
+            socket.emit("controlDoor", "open");
+            doorOpen = true;
+            document.getElementById("doorStatus").innerText = "Door is open";
+        }
+
+        function toggleDoor() {
+            if (doorOpen) {
+                alert("Closing door...");
+                socket.emit("controlDoor", "close");
+                doorOpen = false;
+                document.getElementById("doorStatus").innerText = "Door is closed";
+            } else {
+                alert("Opening door...");
+                socket.emit("controlDoor", "open");
+                doorOpen = true;
+                document.getElementById("doorStatus").innerText = "Door is open";
+            }
+        }
+    </script>
+</body>
+
+</html>

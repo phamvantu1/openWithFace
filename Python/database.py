@@ -1,31 +1,24 @@
-from firebase_admin import db
+import mysql.connector
 from datetime import datetime
 
-def addAttendanceTime(id):
+db_config = {
+    'user': 'root',
+    'password': '123456',
+    'host': 'localhost',
+    'database': 'face_recognition',
+}
 
+conn = mysql.connector.connect(**db_config)
+cursor = conn.cursor()
 
-    ref = db.reference('FaceID')
+def addAttendanceTime(name):
+    query = "INSERT INTO attendance (name, attendance_time) VALUES (%s, %s)"
+    values = (name, datetime.now())
+    cursor.execute(query, values)
+    conn.commit()
 
-
-    new_attendance_time = str(datetime.now())
-
-    data_of_id = ref.child(id).get()
-
-    # Add the new attendance time to the list
-    data_of_id["attendance time"].append(new_attendance_time)
-
-    ref.child(id).update(data_of_id)
-
-def removeAttendanceTimeByKey(id, key_to_remove):
-    ref = db.reference('FaceID')
-
-    # Lấy dữ liệu hiện tại của 'id' từ database
-    data_of_id = ref.child(id).get()
-
-    # Xóa phần tử tại key_to_remove nếu tồn tại
-    if "attendance time" in data_of_id and key_to_remove in data_of_id["attendance time"]:
-        data_of_id["attendance time"].pop(key_to_remove)
-
-        # Cập nhật lại dữ liệu trong database
-        ref.child(id).update({"attendance time": data_of_id["attendance time"]})
-
+def removeAttendanceTimeByKey(id):
+    query = "DELETE FROM attendance WHERE id = %s"
+    values = (id,)
+    cursor.execute(query, values)
+    conn.commit()

@@ -5,9 +5,21 @@ import numpy as np
 import face_recognition
 import os
 from datetime import datetime
-import database
+import mysql.connector  # Add this import
 
 from ESP32 import *
+
+# MySQL database configuration
+db_config = {
+    'user': 'root',
+    'password': '123456',
+    'host': 'localhost',
+    'database': 'face_recognition',
+}
+
+# Initialize MySQL connection and cursor
+conn = mysql.connector.connect(**db_config)
+cursor = conn.cursor()
 
 path = './ImageAttendance'
 images = []
@@ -44,7 +56,7 @@ if not cap.isOpened():
 
 
 def process(img):
-    name = "Người dùng chưa tồn tại"
+    name = "User does not exist"
     global stime
     global unlock
 
@@ -63,7 +75,7 @@ def process(img):
         matchIndex = np.argmin(faceDis)
         if faceDis[matchIndex] < 0.50:
             name = classNames[matchIndex].upper()
-            database.addAttendanceTime(name)
+            add_attendance_time(name)
             unlock = True
         else:
             name = 'Unknown'
@@ -83,5 +95,11 @@ def process(img):
     cv2.waitKey(1)
 
     return name
+
+def add_attendance_time(name):
+    query = "INSERT INTO attendance (name, attendance_time) VALUES (%s, %s)"
+    values = (name, datetime.now())
+    cursor.execute(query, values)
+    conn.commit()
 
 cv2.destroyAllWindows()
