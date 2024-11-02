@@ -11,7 +11,7 @@ const db = require('./config/db/DBcontext');
 
 
 const app = express();
-const port = 3000;
+const port = 3001;
 app.use(morgan('combined'));
 const server = http.createServer(app);
 

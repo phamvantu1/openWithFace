@@ -14,7 +14,7 @@ db_config = {
     'user': 'root',
     'password': '123456',
     'host': 'localhost',
-    'database': 'face_recognition',
+    'database': 'smartdoor',
 }
 
 # Initialize MySQL connection and cursor
@@ -97,8 +97,8 @@ def process(img):
     return name
 
 def add_attendance_time(name):
-    query = "INSERT INTO attendance (name, attendance_time) VALUES (%s, %s)"
-    values = (name, datetime.now())
+    query = "INSERT INTO action (card_number, action_type, status, timestamp) VALUES (%s, %s, %s, %s)"
+    values = (name, "faceID", "success", datetime.now())
     cursor.execute(query, values)
     conn.commit()
 

@@ -24,3 +24,7 @@ D2 chân dữ liệu
 gnd xám  gpio13 đang làm là chân d2 not d13
 PWM data vàng 
 nguồn đỏ
+
+resolutions
+py đang để port 3001
+js đang để port 3000

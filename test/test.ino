@@ -50,7 +50,7 @@ Servo doorServo;
 WiFiServer server(80);
 bool openCommandReceived = false;
 unsigned long openStartTime = 0;
-const unsigned long openDuration = 15000;
+const unsigned long openDuration = 5000;
 
 
 void setup() {
@@ -99,8 +99,8 @@ void loop() {
         // Thêm phím vào chuỗi nhập vào
         if (key >= '0' && key <= '9') {
           lcd.setCursor(0, 1);
-           lcd.print(key);
           inputString += key; // Chỉ thêm nếu là số
+           lcd.print(inputString);
           for (int i = 0; i < inputString.length(); i++) {
             // lcd.print("*");
           }
@@ -185,6 +185,7 @@ void checkFacialRecognition() {
                 String command = client.readStringUntil('\n');
                 command.trim();
                 if (command == "open") {
+                    lcd.print("Access: Success");
                     openCommandReceived = true;
                     openStartTime = millis();
                 }
