@@ -28,3 +28,25 @@ nguồn đỏ
 resolutions
 py đang để port 3001
 js đang để port 3000
+
+led cửa cổng 32
+
+
+dh11
+data d4
+đèn d2
+
+quang trở 
+Quang trở:
+
+Chân 1 (Một chân của quang trở) -> Nối với chân GND của ESP8266.
+Chân 2 (Chân còn lại của quang trở) -> Nối với một đầu của điện trở (10kΩ hoặc 1kΩ).
+Điện trở:
+
+Một đầu của điện trở (điện trở 10kΩ hoặc 1kΩ) -> Nối với chân 2 của quang trở.
+Chân còn lại của điện trở -> Nối với chân VCC (3.3V) của ESP8266.
+Chân Analog:
+
+Chân nối giữa quang trở và điện trở (chỗ chúng kết nối) -> Nối với chân A0 của ESP8266.
+
+đèn d5

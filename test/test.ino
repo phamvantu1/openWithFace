@@ -9,6 +9,7 @@
 #include <Keypad.h>
 #include <ESP32Servo.h>
 
+
 // Khởi tạo LCD1602 với địa chỉ I2C (thường là 0x27 hoặc 0x3F)
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 
@@ -46,6 +47,13 @@ NTPClient timeClient(udp, "pool.ntp.org", 7 * 3600, 60000); // Cấu hình NTP C
 #define SERVO 2
 Servo doorServo;
 
+// Định nghĩa chân LED
+int LED = 32;
+
+
+
+float previousTemperature = NAN;
+
 // Server for facial recognition  nhan dien mat  mo cua 
 WiFiServer server(80);
 bool openCommandReceived = false;
@@ -60,7 +68,13 @@ void setup() {
     WiFi.begin(ssid, password); // Kết nối WiFi
 
     doorServo.attach(SERVO);
+
+     // Khởi tạo chân LED
+    pinMode(LED, OUTPUT);
     
+    digitalWrite(LED, LOW); // Tắt đèn LED lúc bắt đầu
+   
+
 
     while (WiFi.status() != WL_CONNECTED) {
         delay(5000);
@@ -80,6 +94,9 @@ void setup() {
     lcd.backlight(); // Bật đèn nền LCD
     lcd.setCursor(0, 0);
     lcd.print("Smart Door Ready");
+
+  
+  
 }
 
 void loop() {
@@ -88,6 +105,8 @@ void loop() {
         Serial.println("Card present."); // Thêm dòng này để kiểm tra
         readRFID();
     }
+
+     
     char key = keypad.getKey();
       if (key) {
         if(inputString == ""){
@@ -116,8 +135,10 @@ void loop() {
 
       if (openCommandReceived && (millis() - openStartTime < openDuration)) {
         doorServo.write(90); // Open door
+          digitalWrite(LED, HIGH); // Bật đèn LED khi cửa mở
       } else {
         doorServo.write(0); // Close door
+         digitalWrite(LED, LOW); // Tắt đèn LED khi cửa đóng
         openCommandReceived = false;
       }
 
@@ -162,8 +183,11 @@ void checkpass(String keyword) {
         if (response.indexOf("\"doorStatus\":1") > -1) {
                 lcd.print("Access: Success");
                  doorServo.write(90); // Mở cửa (90 độ)
+                  digitalWrite(LED, HIGH); // Bật đèn LED khi cửa mở
+                  Serial.println("LED ON");
                 delay(5000); // Giữ cửa mở trong 5 giây
                 doorServo.write(0); // Đóng cửa
+                digitalWrite(LED, LOW); // Tắt đèn LED khi cửa đóng
             } else {
                 lcd.print("Access: Failure");
             }
@@ -222,8 +246,12 @@ void sendToServer(String uid) {
             if (response.indexOf("\"doorStatus\":1") > -1) {
                 lcd.print("Access: Success");
                  doorServo.write(90); // Mở cửa
+                 digitalWrite(LED, HIGH); // Bật đèn LED khi cửa mở
+                 Serial.println("LED ON");
                 delay(5000); // Giữ cửa mở trong 5 giây
                 doorServo.write(0); // Đóng cửa
+                digitalWrite(LED, LOW); // Tắt đèn LED khi cửa đóng
+                
             } else {
                 lcd.print("Access: Failure");
             }
