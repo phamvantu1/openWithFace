@@ -170,27 +170,77 @@
             background-color: #0056b3;
         }
 
+        .right-section {
+            text-align: center;
+            background-color: #f0f0f0;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .right-section h2 {
+            font-size: 1.5em;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
         .door-status {
             display: flex;
             flex-direction: column;
             align-items: center;
         }
 
-        .door-status button {
-            margin-top: 10px;
-            padding: 15px 30px;
-            background-color: #343a40;
-            color: white;
-            font-size: 18px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-            width: 100%;
+        #doorStatus {
+            font-size: 1.2em;
+            color: #ff6666;
+            font-weight: bold;
+            margin: 10px 0;
         }
 
-        .door-status button:hover {
-            background-color: #0056b3;
+        /* Nút cửa đóng */
+        /* Định dạng nút nguồn */
+        button.toggle-door {
+            width: 90px;
+            height: 90px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        /* Hiệu ứng ánh sáng bên ngoài khi hover */
+        button.toggle-door:hover {
+            background-color: #45a049;
+            box-shadow: 0 0 12px rgba(69, 160, 73, 0.6), 0 0 20px rgba(69, 160, 73, 0.4);
+        }
+
+        /* Trạng thái nút khi cửa mở */
+        button.toggle-door.door-open {
+            background-color: #ff6666;
+            box-shadow: 0 4px 12px rgba(255, 102, 102, 0.4);
+        }
+
+        button.toggle-door.door-open:hover {
+            background-color: #ff4d4d;
+            box-shadow: 0 0 12px rgba(255, 77, 77, 0.6), 0 0 20px rgba(255, 77, 77, 0.4);
+        }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            border: 0;
         }
 
         @media (max-width: 768px) {
@@ -231,7 +281,8 @@
             <div class="logo">Smart Door Control</div>
             <a href="/">Home</a>
             <a href="/dulieu">Dữ liệu</a>
-            <a href="#history">Lịch sử</a>
+            <a href="/history">Lịch sử</a>
+            <a href="http://127.0.0.1:5500/openWithFace/Website/main.html">Quản lý khuôn mặt</a>
         </div>
 
         <div class="user-info">
@@ -267,59 +318,44 @@
                 <h2>Door Status</h2>
                 <div class="door-status">
                     <p id="doorStatus">Door is closed</p>
-                    <button onclick="toggleDoor()">Toggle Door</button>
+                    <button class="toggle-door" title="Toggle Door Status" onclick="toggleDoor()">
+                        <i class="fas fa-power-off" aria-hidden="true"></i>
+                        <span class="sr-only">Toggle Door</span>
+                    </button>
                 </div>
             </div>
+
         </div>
     </div>
 
     <script>
-        const socket = io();
-        let currentPassword = "";
-        let doorOpen = false;
-
-        function setPassword() {
-            const newPassword = document.getElementById("setPasswordInput").value;
-            if (newPassword) {
-                currentPassword = newPassword;
-                alert("Password set successfully!");
-                document.getElementById("setPasswordInput").value = "";
-            } else {
-                alert("Please enter a valid password.");
-            }
-        }
-
-        function accessByPassword() {
-            const password = document.getElementById("passwordInput").value;
-            if (password === currentPassword) {
-                alert("Password correct! Opening door...");
-                socket.emit("controlDoor", "open");
-                doorOpen = true;
-                document.getElementById("doorStatus").innerText = "Door is open";
-            } else {
-                alert("Incorrect password!");
-            }
-        }
-
-        function accessByRFID() {
-            alert("RFID card detected! Opening door...");
-            socket.emit("controlDoor", "open");
-            doorOpen = true;
-            document.getElementById("doorStatus").innerText = "Door is open";
-        }
-
         function toggleDoor() {
-            if (doorOpen) {
-                alert("Closing door...");
-                socket.emit("controlDoor", "close");
-                doorOpen = false;
-                document.getElementById("doorStatus").innerText = "Door is closed";
-            } else {
-                alert("Opening door...");
-                socket.emit("controlDoor", "open");
-                doorOpen = true;
-                document.getElementById("doorStatus").innerText = "Door is open";
-            }
+            const doorStatus = document.getElementById('doorStatus').innerText === 'Door is closed' ? 1 : 0;
+
+            fetch('/checkapp', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ doorStatus: doorStatus })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    const doorStatusElement = document.getElementById('doorStatus');
+                    const toggleButton = document.querySelector('.toggle-door');
+
+                    if (data.doorStatus === 1) {
+                        doorStatusElement.innerText = 'Door is open';
+                        toggleButton.classList.add('door-open');
+                    } else {
+                        doorStatusElement.innerText = 'Door is closed';
+                        toggleButton.classList.remove('door-open');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('There was an error with the request.');
+                });
         }
     </script>
 </body>

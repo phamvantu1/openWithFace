@@ -78,7 +78,9 @@ class SiteController {
         });
     }
     dulieu(req, res) {
-        res.render('dulieu.html');
+        res.render('dulieu.html', {
+            username: req.session.username
+        });
     }
 
     logAccess(req, res) {
@@ -128,6 +130,18 @@ class SiteController {
         });
     }
 
+    checkapp(req, res) {
+        const doorStatus = req.body.doorStatus; // Lấy trạng thái cửa từ body của yêu cầu
+        console.log('Received doorStatus:', doorStatus);
+        if (doorStatus === 1) {
+            res.json({ doorStatus: 1, message: "Door opened." }); // Mở cửa
+        } else {
+            res.json({ doorStatus: 0, message: "Door closed." }); // Đóng cửa
+        }
+    }
+
+
+
     Quanlythe(req,res){
         const query = 'SELECT * FROM card_lock';
         db.query(query, (err, results) => {
@@ -135,7 +149,10 @@ class SiteController {
                 console.error('Lỗi truy vấn:', err.message);
                 return res.render('thetu.html', { error: 'Đã xảy ra lỗi khi lấy dữ liệu.' });
             }
-            res.render('thetu.html', { cardLocks: results });
+            res.render('thetu.html', {
+                cardLocks: results,
+                username: req.session.username
+             });
         });
     }
     createCardLock(req, res) {
@@ -151,7 +168,9 @@ class SiteController {
     });
     }
     keypad(req,res){
-        res.render('keypad.html');
+        res.render('keypad.html', {
+            username: req.session.username
+        });
     }
 
 }

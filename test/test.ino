@@ -37,6 +37,7 @@ const char* ssid = "phamtuu"; // Thay đổi với SSID của bạn
 const char* password = "123456789"; // Thay đổi với mật khẩu WiFi của bạn
 const char* serverUrl = "http://192.168.226.239:3000/log_access"; // Địa chỉ IP máy chủ
 const char* serverUrlpass = "http://192.168.226.239:3000/checkpass"; // Địa chỉ IP máy chủ
+const char* serverUrlapp = "http://192.168.226.239:3000/checkapp";
 
 String inputString = "";
 
@@ -106,7 +107,7 @@ void loop() {
         readRFID();
     }
 
-     
+    checkapp();
     char key = keypad.getKey();
       if (key) {
         if(inputString == ""){
@@ -198,6 +199,45 @@ void checkpass(String keyword) {
         lcd.setCursor(0, 0);
         lcd.print("Connection Error");
     }
+}
+
+void checkapp() {
+    WiFiClient client;  // Đối tượng WiFiClient
+    //const char* serverUrlapp = "http://192.168.226.239:3000/checkapp";
+    HTTPClient http;    // Tạo đối tượng HTTPClient
+    http.begin(client, serverUrlapp); // Bắt đầu HTTP request với WiFiClient
+
+    int httpResponseCode = http.GET(); // Gửi yêu cầu GET và lấy mã phản hồi HTTP
+    String response = http.getString(); // Nhận phản hồi từ server
+
+    // In ra mã phản hồi và nội dung phản hồi
+    Serial.println(httpResponseCode);
+    Serial.println(response);
+
+    // Kiểm tra nếu mã phản hồi HTTP là 200 (OK) và response chứa "doorStatus":1
+    if (httpResponseCode == 200) {
+        if (response.indexOf("\"doorStatus\":1") > -1) {
+            lcd.clear();
+            lcd.setCursor(0, 0);
+            lcd.print("Access: Success");
+
+            doorServo.write(90); // Mở cửa (90 độ)
+            digitalWrite(LED, HIGH); // Bật đèn LED khi cửa mở
+            Serial.println("LED ON");
+            delay(5000); // Giữ cửa mở trong 5 giây
+
+            doorServo.write(0); // Đóng cửa
+            digitalWrite(LED, LOW); // Tắt đèn LED khi cửa đóng
+        } else {
+            lcd.clear();
+            lcd.setCursor(0, 0);
+            lcd.print("Access: Failure");
+        }
+    } else {
+        Serial.println("Error in HTTP request");
+    }
+
+    http.end(); // Kết thúc kết nối HTTP
 }
 
 void checkFacialRecognition() {
