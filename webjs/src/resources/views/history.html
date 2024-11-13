@@ -148,25 +148,6 @@
             <tbody id="accessLogTable"></tbody>
         </table>
     </div>
-    <script>
-        // const socket = require('../../socket/socket.js');
-        const socket = io();
-
-        socket.on('doorStatus', function (logs) {
-            $('#accessLogTable').empty();
-            logs.forEach(log => {
-                const status = log.doorStatus === 1 ? "Success" : "Failure";
-                $('#accessLogTable').append(`
-                        <tr>
-                            <td>${log.id}</td>
-                            <td>${log.time}</td>
-                            <td>${log.date}</td>
-                            <td>${log.log}</td>
-                        </tr>
-                    `);
-            });
-        });
-    </script>
 </body>
 
 </html>
