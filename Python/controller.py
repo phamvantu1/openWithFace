@@ -3,7 +3,7 @@ from flask_cors import CORS
 import os
 
 from Python.ESP32 import send_command
-from Python.database import getAttendanceTime, addAttendanceTime
+from Python.database import getAttendanceTime, addAttendanceTime, addAttendanceTimeV2
 
 app = Flask(__name__)
 CORS(app)  # Cho phép CORS cho mọi nguồn
@@ -47,7 +47,7 @@ def get_image(filename):
 @app.route('/open-door', methods=['POST'])
 def open_door():
     send_command("open")
-    addAttendanceTime("openByAPP")
+    addAttendanceTimeV2("openByAPP")
     return jsonify({'success': 'Door opened successfully'}), 200
 
 @app.route('/history', methods=['GET'])

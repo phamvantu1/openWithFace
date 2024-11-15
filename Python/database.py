@@ -17,6 +17,13 @@ def addAttendanceTime(name):
     cursor.execute(query, values)
     conn.commit()
 
+
+def addAttendanceTimeV2(name):
+    query = "INSERT INTO action (card_number, action_type, status, timestamp) VALUES (%s, %s, %s, %s)"
+    values = (name,"web","success", datetime.now())
+    cursor.execute(query, values)
+    conn.commit()
+
 def getAttendanceTime():
     cursor.execute("SELECT * FROM action")
     actions = cursor.fetchall()

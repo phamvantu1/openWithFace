@@ -85,52 +85,98 @@ class SiteController {
     }
 
     logAccess(req, res) {
-    const { userID, time } = req.body;
-    console.log('Received:', { userID, time });
+        const { userID, time } = req.body;
+        console.log('Received:', { userID, time });
 
-    const query = 'SELECT * FROM card_lock WHERE id_the = ?';
-    db.query(query, [userID], (err, results) => {
-        if (err) {
-            console.error('Lỗi truy vấn:', err.message);
-            return res.json({ success: false, message: 'Lỗi khi kiểm tra thẻ' });
-        }
+        const query = 'SELECT * FROM card_lock WHERE id_the = ?';
+        db.query(query, [userID], (err, results) => {
+            if (err) {
+                console.error('Lỗi truy vấn:', err.message);
+                return res.json({ success: false, message: 'Lỗi khi kiểm tra thẻ' });
+            }
 
-        const doorStatus = results.length > 0 ? 1 : 0;
+            const doorStatus = results.length > 0 ? 1 : 0;
 
-        const logEntry = {
-            id: userID,
-            time: time,
-            date: new Date().toLocaleDateString(),
-            log: doorStatus === 1 ? "Success" : "Failure" 
-        };
+            const logEntry = {
+                id: userID,
+                time: time,
+                date: new Date().toLocaleDateString(),
+                log: doorStatus === 1 ? "Success" : "Failure"
+            };
 
-        userLogs.push(logEntry);
-        socket.getIO().emit('doorStatus', userLogs);
+            userLogs.push(logEntry);
+            socket.getIO().emit('doorStatus', userLogs);
 
-        res.json({ success: true, message: 'Logged successfully', userLogs: userLogs, doorStatus: doorStatus });
+            // Lưu vào bảng `action` nếu mở thành công
+            if (doorStatus === 1) {
+
+                const userName = results[0].ten; // Lấy tên từ kết quả truy vấn
+
+                const actionQuery = `
+                    INSERT INTO action (card_number, action_type, status) 
+                    VALUES (?, ?, ?)
+                `;
+                const actionValues = [
+                    userName,              // card_number: ID của thẻ được sử dụng
+                    'card',    // action_type: Loại hành động (ví dụ: quyền truy cập được cấp)
+                    'SUCCESS'          // status: Trạng thái hành động
+
+                ];
+
+                db.query(actionQuery, actionValues, (actionErr) => {
+                    if (actionErr) {
+                        console.error('Lỗi khi lưu vào bảng action:', actionErr.message);
+                    } else {
+                        console.log('Dữ liệu đã được lưu vào bảng action');
+                    }
+                });
+            }
+
+            res.json({ success: true, message: 'Logged successfully', userLogs: userLogs, doorStatus: doorStatus });
         });
     }
 
-    checkpass(req,res){
+
+    checkpass(req, res) {
         const keyword = req.body.keyword; 
         const query = 'SELECT * FROM user_iot WHERE passdoor = ?';
-
+    
         // Thực hiện truy vấn
         db.query(query, [keyword], (error, results) => {
             if (error) {
                 console.error("Lỗi truy vấn:", error);
                 return res.status(500).json({ message: "Internal Server Error" });
             }
-
+    
             // Kiểm tra kết quả truy vấn
             if (results.length > 0) {
-                res.json({ doorStatus: 1, message: "Access granted." });
+                // Thông tin cần lưu
+                const actionQuery = `
+                    INSERT INTO action (card_number, action_type, status ) 
+                    VALUES (?, ?, ?)
+                `;
+                const actionValues = [
+                     "Pass",       // card_number: ID của người dùng hoặc thẻ (giả định tồn tại trong bảng user_iot)
+                    'keypad',         // action_type: Loại hành động
+                    'SUCCESS'           // status: Thành công
+                   
+                ];
+    
+                // Lưu vào bảng action
+                db.query(actionQuery, actionValues, (actionErr) => {
+                    if (actionErr) {
+                        console.error('Lỗi khi lưu vào bảng action:', actionErr.message);
+                        return res.status(500).json({ message: "Failed to log action" });
+                    }
+                    console.log('Dữ liệu đã được lưu vào bảng action');
+                    res.json({ doorStatus: 1, message: "Access granted." });
+                });
             } else {
                 res.json({ doorStatus: 0, message: "Access denied." });
             }
         });
     }
-
+    
     checkapp(req, res) {
         const doorStatus = req.body.doorStatus; // Lấy trạng thái cửa từ body của yêu cầu
         console.log('Received doorStatus:', doorStatus);
