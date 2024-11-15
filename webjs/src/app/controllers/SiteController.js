@@ -3,6 +3,7 @@ const app = express();
 const socket = require('../../socket/socket');
 const db = require('../../config/db/DBcontext');
 let userLogs = [];
+const axios = require('axios');
 class SiteController {
 
     login(req,res){
@@ -133,12 +134,14 @@ class SiteController {
     checkapp(req, res) {
         const doorStatus = req.body.doorStatus; // Lấy trạng thái cửa từ body của yêu cầu
         console.log('Received doorStatus:', doorStatus);
-        if (doorStatus === 1) {
+        if (doorStatus == 1) {
             res.json({ doorStatus: 1, message: "Door opened." }); // Mở cửa
         } else {
             res.json({ doorStatus: 0, message: "Door closed." }); // Đóng cửa
         }
     }
+   
+    
 
 
 

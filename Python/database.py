@@ -17,6 +17,11 @@ def addAttendanceTime(name):
     cursor.execute(query, values)
     conn.commit()
 
+def getAttendanceTime():
+    cursor.execute("SELECT * FROM action")
+    actions = cursor.fetchall()
+    return actions
+
 def removeAttendanceTimeByKey(id):
     query = "DELETE FROM action WHERE id = %s"
     values = (id,)
