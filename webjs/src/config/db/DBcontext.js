@@ -2,7 +2,7 @@
 const mysql = require('mysql2');
 
 const dbConfig = {
-    host: 'localhost',
+    host: 'mysql',
     user: 'root',
     password: '123456',
     database: 'smartdoor'
