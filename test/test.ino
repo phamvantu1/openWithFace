@@ -139,6 +139,10 @@ void loop() {
       } else {
         doorServo.write(0); // Close door
          digitalWrite(LED, LOW); // Tắt đèn LED khi cửa đóng
+         if (openCommandReceived){
+          lcd.clear();
+          lcd.print("close door");
+         }
         openCommandReceived = false;
       }
 
@@ -181,13 +185,16 @@ void checkpass(String keyword) {
         lcd.setCursor(0, 0);
 
         if (response.indexOf("\"doorStatus\":1") > -1) {
-                lcd.print("Access: Success");
+                lcd.print("Open : Success");
                  doorServo.write(90); // Mở cửa (90 độ)
                   digitalWrite(LED, HIGH); // Bật đèn LED khi cửa mở
                   Serial.println("LED ON");
                 delay(5000); // Giữ cửa mở trong 5 giây
                 doorServo.write(0); // Đóng cửa
                 digitalWrite(LED, LOW); // Tắt đèn LED khi cửa đóng
+                lcd.clear();
+                lcd.print("close door");
+
             } else {
                 lcd.print("Access: Failure");
             }
@@ -209,7 +216,8 @@ void checkFacialRecognition() {
                 String command = client.readStringUntil('\n');
                 command.trim();
                 if (command == "open") {
-                    lcd.print("Access: Success");
+                    lcd.clear();
+                    lcd.print("Open : Success");
                     openCommandReceived = true;
                     openStartTime = millis();
                 }
@@ -244,13 +252,15 @@ void sendToServer(String uid) {
             lcd.setCursor(0, 0);
 
             if (response.indexOf("\"doorStatus\":1") > -1) {
-                lcd.print("Access: Success");
+                lcd.print("Open : Success");
                  doorServo.write(90); // Mở cửa
                  digitalWrite(LED, HIGH); // Bật đèn LED khi cửa mở
                  Serial.println("LED ON");
                 delay(5000); // Giữ cửa mở trong 5 giây
                 doorServo.write(0); // Đóng cửa
                 digitalWrite(LED, LOW); // Tắt đèn LED khi cửa đóng
+                lcd.clear();
+                lcd.print("close door");
                 
             } else {
                 lcd.print("Access: Failure");
