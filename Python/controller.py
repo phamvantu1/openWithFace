@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, send_from_directory, render_template
 from flask_cors import CORS
 import os
 
@@ -9,6 +9,10 @@ app = Flask(__name__)
 CORS(app)  # Cho phép CORS cho mọi nguồn
 UPLOAD_FOLDER = './ImageAttendance'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+@app.route('/')
+def index():
+    return render_template('main.html')
 
 @app.route('/upload', methods=['POST'])
 def upload_file():

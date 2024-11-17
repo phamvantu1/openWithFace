@@ -7,9 +7,9 @@
 #define LDR_PIN A0               // Pin cho quang trở (LDR)
 #define LED_LIGHT_PIN D5         // Pin LED để bật khi trời tối
 
-const float TEMP_THRESHOLD = 30.0;  // Ngưỡng nhiệt độ để bật LED
-const float HUM_THRESHOLD = 70.0;   // Ngưỡng độ ẩm để bật LED
-const int LIGHT_THRESHOLD = 600;    // Ngưỡng ánh sáng để bật đèn LED khi trời tối
+const float TEMP_THRESHOLD = 33.0;  // Ngưỡng nhiệt độ để bật LED
+const float HUM_THRESHOLD = 85.0;   // Ngưỡng độ ẩm để bật LED
+const int LIGHT_THRESHOLD = 1000;    // Ngưỡng ánh sáng để bật đèn LED khi trời tối
 
 DHT dht(DHTPIN, DHTTYPE);
 

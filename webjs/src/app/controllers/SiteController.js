@@ -58,6 +58,24 @@ class SiteController {
     });
 }
 
+deleteCard(req, res) {
+    const { cardID } = req.params;
+
+    const query = 'DELETE FROM card_lock WHERE id = ?';
+    db.query(query, [cardID], (err, results) => {
+        if (err) {
+            console.error('Lỗi truy vấn:', err.message);
+            return res.status(500).json({ message: 'Internal Server Error' });
+        }
+
+        if (results.affectedRows > 0) {
+            res.status(200).json({ message: 'Card deleted successfully' });
+        } else {
+            res.status(404).json({ message: 'Card not found' });
+        }
+    });
+}
+
     handleLogin(req, res) {
         const { username, password } = req.body;
 
@@ -204,6 +222,35 @@ class SiteController {
              });
         });
     }
+    updateCard(req, res) {
+        const { cardID } = req.params;
+        const { ten, id_the, ngaytao } = req.body;
+
+        const query = 'UPDATE card_lock SET ten = ?, id_the = ?, ngaytao = ? WHERE id = ?';
+        db.query(query, [ten, id_the, ngaytao, cardID], (err, results) => {
+            if (err) {
+                console.error('Lỗi truy vấn:', err.message);
+                return res.status(500).json({ message: 'Internal Server Error' });
+            }
+
+            if (results.affectedRows > 0) {
+                res.status(200).json({ message: 'Card updated successfully' });
+            } else {
+                res.status(404).json({ message: 'Card not found' });
+            }
+        });
+    }
+
+    logout(req, res) {
+        req.session.destroy((err) => {
+            if (err) {
+                console.error('Lỗi khi đăng xuất:', err.message);
+                return res.status(500).json({ message: 'Internal Server Error' });
+            }
+            res.status(200).json({ message: 'Logged out successfully' });
+        });
+    }
+
     createCardLock(req, res) {
     const { ten, id_the } = req.body; 
 

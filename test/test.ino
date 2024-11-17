@@ -35,8 +35,8 @@ MFRC522 rfid(SS_PIN, RST_PIN); // Instance of the class
 
 const char* ssid = "phamtuu"; // Thay đổi với SSID của bạn
 const char* password = "123456789"; // Thay đổi với mật khẩu WiFi của bạn
-const char* serverUrl = "http://192.168.226.239:3000/log_access"; // Địa chỉ IP máy chủ
-const char* serverUrlpass = "http://192.168.226.239:3000/checkpass"; // Địa chỉ IP máy chủ
+const char* serverUrl = "http://54.151.132.92:3000/log_access"; // Địa chỉ IP máy chủ
+const char* serverUrlpass = "http://54.151.132.92:3000/checkpass"; // Địa chỉ IP máy chủ
 
 String inputString = "";
 

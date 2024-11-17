@@ -14,6 +14,9 @@ router.get('/keypad',siteController.keypad);
 router.get('/thetu',siteController.Quanlythe);
 router.get('/dulieu',siteController.dulieu);
 router.get('/login', siteController.login);
+router.put('/update-card/:cardID', siteController.updateCard);
+router.delete('/delete-card/:cardID', siteController.deleteCard);
+router.post('/logout', siteController.logout);
 router.get('/', siteController.home);
 
 
