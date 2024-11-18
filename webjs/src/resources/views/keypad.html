@@ -6,22 +6,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Đổi Mật Khẩu - Quản Lý Khóa Cửa Thông Minh</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
             font-family: 'Roboto', sans-serif;
-            background-color: #e9ecef;
+            background: linear-gradient(135deg, #e0f7fa, #80deea, #4dd0e1);
             color: #333;
             display: flex;
             flex-direction: column;
             align-items: center;
+            padding: 20px;
+            min-height: 100vh;
         }
 
         nav {
@@ -36,12 +33,6 @@
             margin-bottom: 20px;
         }
 
-        .menu-left {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
         .logo {
             color: white;
             font-size: 24px;
@@ -54,49 +45,28 @@
             text-decoration: none;
             padding: 10px 15px;
             border-radius: 5px;
-            transition: background-color 0.3s, color 0.3s;
-        }
-
-        nav a:hover {
-            background-color: #0056b3;
-            color: #f4f4f4;
-        }
-
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            color: white;
-        }
-
-        .logout-button {
-            padding: 5px 10px;
-            background-color: #ff4c4c;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
             transition: background-color 0.3s;
         }
 
-        .logout-button:hover {
-            background-color: #e63939;
+        nav a:hover {
+            background-color: #007bff;
         }
 
         .content {
-            padding: 20px;
-            max-width: 600px;
-            margin: auto;
             background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-            margin-top: 40px;
+            border-radius: 20px;
+            padding: 30px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
         h2 {
-            color: #28a745;
+            color: #007bff;
             margin-bottom: 20px;
             text-align: center;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #80deea;
         }
 
         .form-group label {
@@ -104,55 +74,65 @@
         }
 
         .btn-primary {
-            background-color: #28a745;
+            background-color: #007bff;
             border: none;
-            transition: background-color 0.3s;
+            transition: background-color 0.3s ease, transform 0.2s ease;
         }
 
         .btn-primary:hover {
-            background-color: #218838;
-        }
-
-        @media (max-width: 768px) {
-            .content {
-                width: 90%;
-            }
+            background-color: #0056b3;
+            transform: scale(1.05);
         }
     </style>
 </head>
 
 <body>
-    <nav>
-        <div class="menu-left">
-            <div class="logo">Smart Door Control</div>
-            <a href="/">Home</a>
-            <a href="/dulieu">Dữ liệu</a>
-            <a href="/history">Lịch sử</a>
-        </div>
-
-        <div class="user-info">
-            <span>Xin chào, <%= username %>!</span>
-            <button class="logout-button">Logout</button>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand logo" href="#">Smart Door Control</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dulieu">Dữ liệu</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/history">Lịch sử</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="http://127.0.0.1:5000/openWithFace/Website/main.html">Quản lý khuôn mặt</a>
+                    </li>
+                </ul>
+                <div class="user-info ml-3 text-white">
+                    <span>Xin chào, <%= username %>!</span>
+                    <button class="btn btn-danger btn-sm logout-button ml-2">Logout</button>
+                </div>
+            </div>
         </div>
     </nav>
 
-    <div class="content container mt-4">
+    <!-- Content -->
+    <div class="content">
         <h2>Đổi Mật Khẩu</h2>
         <form action="keypad/update" method="post">
             <div class="form-group">
                 <label for="currentPassword">Mật Khẩu Hiện Tại</label>
-                <input type="password" class="form-control" id="currentPassword" name="currentPassword"
-                    placeholder="Nhập mật khẩu hiện tại" required>
+                <input type="password" class="form-control" id="currentPassword" name="currentPassword" placeholder="Nhập mật khẩu hiện tại" required>
             </div>
             <div class="form-group">
                 <label for="newPassword">Mật Khẩu Mới</label>
-                <input type="password" class="form-control" id="newPassword" name="newPassword"
-                    placeholder="Nhập mật khẩu mới" required>
+                <input type="password" class="form-control" id="newPassword" name="newPassword" placeholder="Nhập mật khẩu mới" required>
             </div>
             <div class="form-group">
                 <label for="confirmPassword">Xác Nhận Mật Khẩu Mới</label>
-                <input type="password" class="form-control" id="confirmPassword" placeholder="Xác nhận mật khẩu mới"
-                    required>
+                <input type="password" class="form-control" id="confirmPassword" placeholder="Xác nhận mật khẩu mới" required>
             </div>
             <button type="submit" class="btn btn-primary btn-block">Đổi Mật Khẩu</button>
         </form>

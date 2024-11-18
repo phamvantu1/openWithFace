@@ -11,16 +11,12 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
             font-family: 'Roboto', sans-serif;
-            background-color: #e9ecef;
+            background: linear-gradient(135deg, #e0f7fa, #80deea, #4dd0e1);
             color: #333;
+            min-height: 100vh;
+            padding: 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -48,7 +44,6 @@
             color: white;
             font-size: 24px;
             font-weight: bold;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
         }
 
         nav a {
@@ -60,47 +55,39 @@
         }
 
         nav a:hover {
-            background-color: #0056b3;
+            background-color: #007bff;
             color: #f4f4f4;
         }
 
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            color: white;
-        }
-
-        .logout-button {
-            padding: 5px 10px;
-            background-color: #ff4c4c;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        .logout-button:hover {
-            background-color: #e63939;
+        .content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            width: 100%;
+            max-width: 900px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
         h1 {
-            color: #343a40;
-            font-size: 2.5em;
-            margin-bottom: 20px;
+            color: #007bff;
             text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .btn-add {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        .btn-add:hover {
+            background-color: #218838;
+            transform: scale(1.05);
         }
 
         table {
-            width: 100%;
-            max-width: 900px;
-            margin: 20px 0;
-            border-collapse: collapse;
-            background-color: white;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            border-radius: 8px;
-            overflow: hidden;
+            margin-top: 20px;
         }
 
         thead {
@@ -108,44 +95,13 @@
             color: white;
         }
 
-        th,
-        td {
-            padding: 12px 15px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-
-        th {
-            font-weight: 700;
-            text-transform: uppercase;
-            font-size: 0.9em;
-        }
-
-        tr:nth-child(even) {
-            background-color: #f2f2f2;
-        }
-
-        tr:hover {
-            background-color: #e9f5e9;
-        }
-
-        .btn {
-            padding: 8px 12px;
-            font-size: 0.9em;
-            border-radius: 5px;
-            cursor: pointer;
-            border: none;
-            transition: background-color 0.3s, transform 0.2s;
-        }
-
         .btn-edit {
             background-color: #ffc107;
-            color: #333;
+            color: white;
         }
 
         .btn-edit:hover {
             background-color: #e0a800;
-            transform: translateY(-2px);
         }
 
         .btn-delete {
@@ -155,122 +111,90 @@
 
         .btn-delete:hover {
             background-color: #c82333;
-            transform: translateY(-2px);
-        }
-
-        .form-container {
-            width: 100%;
-            max-width: 900px;
-            background-color: #ffffff;
-            padding: 20px;
-            margin-top: 20px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            border-radius: 8px;
-            display: none;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        .form-group label {
-            font-weight: 500;
-            margin-bottom: 5px;
-            display: block;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 1em;
-            transition: border-color 0.3s;
-        }
-
-        .form-group input:focus {
-            border-color: #007bff;
-            outline: none;
-        }
-
-        .form-group button {
-            width: 100%;
-            padding: 10px;
-            background-color: #28a745;
-            color: white;
-            font-size: 1em;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        .form-group button:hover {
-            background-color: #218838;
         }
     </style>
 </head>
 
 <body>
-    <nav>
-        <div class="menu-left">
-            <div class="logo">Smart Door Control</div>
-            <a href="/">Home</a>
-            <a href="/dulieu">Dữ liệu</a>
-            <a href="/history">Lịch sử</a>
-        </div>
-        <div class="user-info">
-            <span>Xin chào, <%= username %>!</span>
-            <button class="logout-button">Logout</button>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand logo" href="#">Smart Door Control</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dulieu">Dữ liệu</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/history">Lịch sử</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="http://127.0.0.1:5000/openWithFace/Website/main.html">Quản lý khuôn mặt</a>
+                    </li>
+                </ul>
+                <div class="user-info ml-3 text-white">
+                    <span>Xin chào, <%= username %>!</span>
+                    <button class="btn btn-danger btn-sm logout-button ml-2">Logout</button>
+                </div>
+            </div>
         </div>
     </nav>
 
-    <h1>Quản Lý Thẻ Từ</h1>
-    <div class="text-right mb-3">
-        <button type="button" class="btn btn-success" data-toggle="modal" data-target="#addUserModal">
-            Thêm Người Dùng
-        </button>
+    <div class="content">
+        <h1>Quản Lý Thẻ Từ</h1>
+        <div class="text-right mb-3">
+            <button type="button" class="btn btn-add" data-toggle="modal" data-target="#addUserModal">
+                Thêm Người Dùng
+            </button>
+        </div>
+        <table class="table table-striped table-bordered">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Tên</th>
+                    <th>ID Thẻ</th>
+                    <th>Ngày Tạo</th>
+                    <th>Thao Tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% if (cardLocks && cardLocks.length> 0) { %>
+                    <% cardLocks.forEach(lock=> { %>
+                        <tr>
+                            <td>
+                                <%= lock.id %>
+                            </td>
+                            <td>
+                                <%= lock.ten %>
+                            </td>
+                            <td>
+                                <%= lock.id_the %>
+                            </td>
+                            <td>
+                                <%= lock.ngaytao.toLocaleDateString('vi-VN') %>
+                            </td>
+                            <td>
+                                <button class="btn btn-edit">Sửa</button>
+                                <button class="btn btn-delete">Xóa</button>
+                            </td>
+                        </tr>
+                        <% }) %>
+                            <% } else { %>
+                                <tr>
+                                    <td colspan="5" class="text-center">Không có dữ liệu nào.</td>
+                                </tr>
+                                <% } %>
+            </tbody>
+        </table>
     </div>
-    <table>
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Tên</th>
-                <th>ID Thẻ</th>
-                <th>Ngày Tạo</th>
-                <th>Thao tác</th>
-            </tr>
-        </thead>
-        <tbody>
-            <% if (cardLocks && cardLocks.length> 0) { %>
-                <% cardLocks.forEach(lock=> { %>
-                    <tr>
-                        <td>
-                            <%= lock.id %>
-                        </td>
-                        <td>
-                            <%= lock.ten %>
-                        </td>
-                        <td>
-                            <%= lock.id_the %>
-                        </td>
-                        <td>
-                            <%= lock.ngaytao.toLocaleDateString('vi-VN') %>
-                        </td>
-                        <td>
-                            <button class="btn btn-edit">Sửa</button>
-                            <button class="btn btn-delete">Xóa</button>
-                        </td>
-                    </tr>
-                    <% }) %>
-                        <% } else { %>
-                            <tr>
-                                <td colspan="4" style="text-align: center;">Không có dữ liệu nào.</td>
-                            </tr>
-                            <% } %>
-        </tbody>
-    </table>
 
+    <!-- Modal Thêm Người Dùng -->
     <div class="modal fade" id="addUserModal" tabindex="-1" role="dialog" aria-labelledby="addUserModalLabel"
         aria-hidden="true">
         <div class="modal-dialog" role="document">

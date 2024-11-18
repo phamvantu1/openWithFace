@@ -10,38 +10,24 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
             font-family: 'Roboto', sans-serif;
-            background-color: #e9ecef;
-            /* Slightly gray background */
+            background: linear-gradient(135deg, #e0f7fa, #80deea, #4dd0e1);
             color: #333;
+            padding: 20px;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
         }
 
         nav {
-            width: 100%;
             background-color: #343a40;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 20px;
+            padding: 15px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            border-radius: 8px;
             margin-bottom: 20px;
-        }
-
-        .menu-left {
-            display: flex;
-            align-items: center;
-            gap: 15px;
+            border-radius: 10px;
+            width: 100%;
         }
 
         .logo {
@@ -54,283 +40,171 @@
         nav a {
             color: white;
             text-decoration: none;
-            padding: 10px 15px;
+            margin-right: 20px;
+            padding: 8px 15px;
             border-radius: 5px;
-            transition: background-color 0.3s, color 0.3s;
+            transition: background-color 0.3s;
         }
 
         nav a:hover {
-            background-color: #0056b3;
-            color: #f4f4f4;
-        }
-
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            color: white;
-        }
-
-        .logout-button {
-            padding: 5px 10px;
-            background-color: #ff4c4c;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        .logout-button:hover {
-            background-color: #e63939;
+            background-color: #007bff;
         }
 
         .content {
-            padding: 20px;
             display: flex;
-            flex-direction: row;
-            align-items: flex-start;
-            justify-content: center;
+            flex-direction: column;
+            gap: 20px;
+            width: 100%;
+            max-width: 800px;
         }
 
-        .container {
-            width: 90%;
-            max-width: 1200px;
-            background: white;
-            border-radius: 8px;
+        .card {
+            background-color: #ffffff;
+            border-radius: 20px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             padding: 20px;
-            margin-top: 20px;
-            display: flex;
-        }
-
-        .left-section {
-            flex: 8;
-            padding-right: 20px;
-        }
-
-        .right-section {
-            flex: 4;
-            padding-left: 20px;
-            border-left: 1px solid #ddd;
-        }
-
-        h2 {
-            color: #343a40;
-            border-bottom: 2px solid #ddd;
-            padding-bottom: 5px;
-        }
-
-        .access-method {
-            display: flex;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            margin-top: 20px;
-        }
-
-        .access-item {
-            flex: 0 0 calc(50% - 10px);
-            flex: 1;
-            margin: 10px;
-            padding: 20px;
-            background-color: #e9ecef;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .access-method div {
-            padding: 20px;
-            background-color: #e9ecef;
-            border: 1px solid #ccc;
-            border-radius: 8px;
             text-align: center;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
         }
 
-        .access-method h3 {
-            color: #343a40;
-            font-size: 20px;
-            margin-bottom: 10px;
-        }
-
-        .access-method button {
-            padding: 10px 20px;
-            background-color: #343a40;
-            color: white;
-            font-size: 16px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        .access-method button:hover {
-            background-color: #0056b3;
-        }
-
-        .right-section {
-            text-align: center;
-            background-color: #f0f0f0;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .right-section h2 {
-            font-size: 1.5em;
-            color: #333;
+        .card h3 {
+            color: #007bff;
             margin-bottom: 15px;
         }
 
+        .card i {
+            font-size: 50px;
+            color: #007bff;
+            margin-bottom: 15px;
+        }
+
+        .card button {
+            padding: 8px 16px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        .card button:hover {
+            background-color: #0056b3;
+            transform: scale(1.05);
+        }
+
         .door-status {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        #doorStatus {
-            font-size: 1.2em;
-            color: #ff6666;
+            font-size: 1.5rem;
             font-weight: bold;
-            margin: 10px 0;
         }
 
-        /* Nút cửa đóng */
-        /* Định dạng nút nguồn */
-        button.toggle-door {
-            width: 90px;
-            height: 90px;
-            background-color: #4CAF50;
+        .toggle-door {
+            width: 70px;
+            height: 70px;
+            background-color: #000;
             color: white;
             border: none;
             border-radius: 50%;
-            font-size: 24px;
+            font-size: 1.5rem;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
+            margin: 20px auto;
         }
 
-        /* Hiệu ứng ánh sáng bên ngoài khi hover */
-        button.toggle-door:hover {
-            background-color: #45a049;
-            box-shadow: 0 0 12px rgba(69, 160, 73, 0.6), 0 0 20px rgba(69, 160, 73, 0.4);
+        .toggle-door:hover {
+            transform: scale(1.1);
         }
 
-        /* Trạng thái nút khi cửa mở */
-        button.toggle-door.door-open {
-            background-color: #ff6666;
-            box-shadow: 0 4px 12px rgba(255, 102, 102, 0.4);
+        .toggle-door.door-open {
+            /* background-color: #fff; */
+            color: black;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
         }
 
-        button.toggle-door.door-open:hover {
-            background-color: #ff4d4d;
-            box-shadow: 0 0 12px rgba(255, 77, 77, 0.6), 0 0 20px rgba(255, 77, 77, 0.4);
+        .status-badge {
+            display: inline-block;
+            padding: 10px 20px;
+            font-size: 1rem;
+            border-radius: 20px;
+            margin-top: 10px;
         }
 
-        .sr-only {
-            position: absolute;
-            width: 1px;
-            height: 1px;
-            padding: 0;
-            margin: -1px;
-            overflow: hidden;
-            clip: rect(0, 0, 0, 0);
-            border: 0;
+        .status-badge.closed {
+            background-color: #dc3545;
+            color: white;
         }
 
-        @media (max-width: 768px) {
-            .access-method {
-                flex-direction: column;
-                align-items: center;
-            }
-
-            .access-method div {
-                width: 100%;
-                margin-bottom: 15px;
-            }
-
-            .container {
-                flex-direction: column;
-            }
-
-            .left-section,
-            .right-section {
-                width: 100%;
-                padding: 0;
-                border: none;
-            }
-        }
-
-        .item-icon {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 20px;
+        .status-badge.open {
+            background-color: #28a745;
+            color: white;
         }
     </style>
 </head>
 
 <body>
-    <nav>
-        <div class="menu-left">
-            <div class="logo">Smart Door Control</div>
-            <a href="/">Home</a>
-            <a href="/dulieu">Dữ liệu</a>
-            <a href="/history">Lịch sử</a>
-            <a href="http://127.0.0.1:5000/openWithFace/Website/main.html">Quản lý khuôn mặt</a>
-        </div>
-
-        <div class="user-info">
-            <span>Xin chào, <%= username %>!</span>
-            <button class="logout-button">Logout</button>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand logo" href="#">Smart Door Control</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dulieu">Dữ liệu</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/history">Lịch sử</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="http://127.0.0.1:5000/openWithFace/Website/main.html">Quản lý khuôn mặt</a>
+                    </li>
+                </ul>
+                <div class="user-info ml-3 text-white">
+                    <span>Xin chào, <%= username %>!</span>
+                    <button class="btn btn-danger btn-sm logout-button ml-2">Logout</button>
+                </div>
+            </div>
         </div>
     </nav>
 
-    <div class="content">
-        <div class="container">
-            <div class="left-section">
-                <h2>Choose Access Method</h2>
-                <div class="access-method">
-                    <div class="access-item">
-                        <h3>Quản lý thẻ từ</h3>
-                        <div class="item-icon">
-                            <i class="fas fa-id-card" style="font-size: 50px; color: #4a90e2;"></i>
-                            <button onclick="window.location.href='/thetu'">Mở bằng thẻ từ</button>
-                        </div>
-                    </div>
 
-                    <div class="access-item">
-                        <h3>Quản lý mật khẩu</h3>
-                        <div class="item-icon">
-                            <i class="fas fa-lock" style="font-size: 50px; color: #4a90e2;"></i>
-                            <button onclick="window.location.href='/keypad'">Đặt mật khẩu</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    <div class="container content">
+        <!-- Card Quản lý thẻ từ -->
+        <div class="card">
+            <h3>Quản lý thẻ từ</h3>
+            <i class="fas fa-id-card"></i>
+            <p>Quản lý và mở khóa bằng thẻ từ.</p>
+            <button onclick="window.location.href='/thetu'">Mở bằng thẻ từ</button>
+        </div>
 
-            <div class="right-section">
-                <h2>Door Status</h2>
-                <div class="door-status">
-                    <p id="doorStatus">Door is closed</p>
-                    <button class="toggle-door" title="Toggle Door Status" onclick="toggleDoor()">
-                        <i class="fas fa-power-off" aria-hidden="true"></i>
-                        <span class="sr-only">Toggle Door</span>
-                    </button>
-                </div>
-            </div>
+        <!-- Card Quản lý mật khẩu -->
+        <div class="card">
+            <h3>Quản lý mật khẩu</h3>
+            <i class="fas fa-lock"></i>
+            <p>Đặt và quản lý mật khẩu an toàn.</p>
+            <button onclick="window.location.href='/keypad'">Đặt mật khẩu</button>
+        </div>
 
+        <!-- Card Trạng thái cửa -->
+        <div class="card">
+            <h3>Trạng thái cửa</h3>
+            <p class="door-status">Trạng thái hiện tại:</p>
+            <span id="doorStatus" class="status-badge closed">Closed</span>
+            <button class="toggle-door" onclick="toggleDoor()" style="display: flex; justify-content: center;align-items: center;">
+                <i class="fas fa-power-off" style="color: #fff;margin-bottom: 0;"></i>
+            </button>
         </div>
     </div>
 
     <script>
         function toggleDoor() {
-            const doorStatus = document.getElementById('doorStatus').innerText === 'Door is closed' ? 1 : 0;
+            const doorStatus = document.getElementById('doorStatus').innerText === 'Closed' ? 1 : 0;
 
             fetch('/checkapp', {
                 method: 'POST',
@@ -345,10 +219,12 @@
                     const toggleButton = document.querySelector('.toggle-door');
 
                     if (data.doorStatus === 1) {
-                        doorStatusElement.innerText = 'Door is open';
+                        doorStatusElement.innerText = 'Open';
+                        doorStatusElement.classList.replace('closed', 'open');
                         toggleButton.classList.add('door-open');
                     } else {
-                        doorStatusElement.innerText = 'Door is closed';
+                        doorStatusElement.innerText = 'Closed';
+                        doorStatusElement.classList.replace('open', 'closed');
                         toggleButton.classList.remove('door-open');
                     }
                 })

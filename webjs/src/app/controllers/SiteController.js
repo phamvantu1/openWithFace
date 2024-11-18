@@ -10,6 +10,8 @@ class SiteController {
         res.render('login.html');
     }
 
+    
+
     home(req, res) {
         if (!req.session.userID) {
             return res.redirect('/login');
@@ -39,7 +41,7 @@ class SiteController {
         // Kiểm tra mật khẩu hiện tại
         const user = results[0];
         console.log(user.passdoor);
-        
+
         if (user.passdoor !== currentPassword) {
             return res.status(400).json({ message: "Mật khẩu hiện tại không chính xác." });
         }
@@ -88,9 +90,9 @@ deleteCard(req, res) {
 
             if (results.length > 0) {
                 const user = results[0];
-                req.session.userID = user.id; 
-                req.session.username = user.ten; 
-                res.redirect('/'); 
+                req.session.userID = user.id;
+                req.session.username = user.ten;
+                res.redirect('/');
             } else {
                 res.render('login.html', { error: 'Tên người dùng hoặc mật khẩu không đúng' });
             }
@@ -131,7 +133,7 @@ deleteCard(req, res) {
                 const userName = results[0].ten; // Lấy tên từ kết quả truy vấn
 
                 const actionQuery = `
-                    INSERT INTO action (card_number, action_type, status) 
+                    INSERT INTO action (card_number, action_type, status)
                     VALUES (?, ?, ?)
                 `;
                 const actionValues = [
@@ -156,30 +158,30 @@ deleteCard(req, res) {
 
 
     checkpass(req, res) {
-        const keyword = req.body.keyword; 
+        const keyword = req.body.keyword;
         const query = 'SELECT * FROM user_iot WHERE passdoor = ?';
-    
+
         // Thực hiện truy vấn
         db.query(query, [keyword], (error, results) => {
             if (error) {
                 console.error("Lỗi truy vấn:", error);
                 return res.status(500).json({ message: "Internal Server Error" });
             }
-    
+
             // Kiểm tra kết quả truy vấn
             if (results.length > 0) {
                 // Thông tin cần lưu
                 const actionQuery = `
-                    INSERT INTO action (card_number, action_type, status ) 
+                    INSERT INTO action (card_number, action_type, status )
                     VALUES (?, ?, ?)
                 `;
                 const actionValues = [
                      "Pass",       // card_number: ID của người dùng hoặc thẻ (giả định tồn tại trong bảng user_iot)
                     'keypad',         // action_type: Loại hành động
                     'SUCCESS'           // status: Thành công
-                   
+
                 ];
-    
+
                 // Lưu vào bảng action
                 db.query(actionQuery, actionValues, (actionErr) => {
                     if (actionErr) {
@@ -194,7 +196,7 @@ deleteCard(req, res) {
             }
         });
     }
-    
+
     checkapp(req, res) {
         const doorStatus = req.body.doorStatus; // Lấy trạng thái cửa từ body của yêu cầu
         console.log('Received doorStatus:', doorStatus);
@@ -204,8 +206,8 @@ deleteCard(req, res) {
             res.json({ doorStatus: 0, message: "Door closed." }); // Đóng cửa
         }
     }
-   
-    
+
+
 
 
 
@@ -252,7 +254,7 @@ deleteCard(req, res) {
     }
 
     createCardLock(req, res) {
-    const { ten, id_the } = req.body; 
+    const { ten, id_the } = req.body;
 
     const query = 'INSERT INTO card_lock (ten, id_the, ngaytao) VALUES (?, ?, CURDATE())';
     db.query(query, [ten, id_the], (err, results) => {
@@ -260,7 +262,7 @@ deleteCard(req, res) {
             console.error('Lỗi truy vấn:', err.message);
             return res.render('main.html', { error: 'Đã xảy ra lỗi khi tạo khóa.' });
         }
-        res.redirect('/thetu'); 
+        res.redirect('/thetu');
     });
     }
     keypad(req,res){
