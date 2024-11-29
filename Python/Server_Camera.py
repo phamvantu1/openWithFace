@@ -4,15 +4,15 @@ import urllib.request
 import numpy as np
 import os
 import mysql.connector
-
+from fer import FER
 from PIL import Image
-
-
 from ESP32 import *
 import Server
+import mediapipe as mp
 
 # Khởi tạo bộ nhận diện khuôn mặt
 face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+emotion_detector = FER()
 
 url = 'http://192.168.226.72/cam-lo.jpg'
 
@@ -56,6 +56,11 @@ while True:
             img_path = os.path.join(output_folder, 'captured_face.jpg')
             cv2.imwrite(img_path, frame)  # Chụp toàn bộ khung chứa khuôn mặt
             capture_flag = True  # Dừng vòng lặp sau khi chụp ảnh
+
+            # Perform emotion detection
+            image = Image.open(img_path)
+            emotion, score = emotion_detector.top_emotion(np.array(image))
+            print(f"Detected emotion: {emotion} with score: {score}")
 
     cv2.imshow('img', frame)
 

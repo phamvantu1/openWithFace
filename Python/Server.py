@@ -34,7 +34,7 @@ for cl in myList:
     classNames.append(os.path.splitext(cl)[0])
 print(classNames)
 
-
+#  nhan dien khuon mat  va ma hoa chung thanh mot dãy số duy nhất
 def findEncodings(images):
     encodeList = []
     for img in images:
@@ -73,6 +73,7 @@ def process(img):
         faceDis = face_recognition.face_distance(encodeListKnown, encodeFace)
         print(faceDis)
         matchIndex = np.argmin(faceDis)
+        #  khoang cach la khoang cách euclid giữa các khuôn mặt , tại các anh được biểu diễn dưới dạng vector
         if faceDis[matchIndex] < 0.50:
             name = classNames[matchIndex].upper()
             add_attendance_time(name)
