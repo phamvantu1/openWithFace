@@ -89,7 +89,7 @@ def process(img):
 
     if unlock:
         time.sleep(1)
-        send_command("open")
+        # send_command("open")
         unlock = False
 
     cv2.imshow('Webcam', img)

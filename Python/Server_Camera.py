@@ -36,17 +36,17 @@ while True:
     img_np = np.array(bytearray(img.read()), dtype=np.uint8)
     frame = cv2.imdecode(img_np, -1)
 
+    frame = cv2.flip(frame, 0)
+
     # Kiểm tra xem frame có rỗng không
     if frame is None or frame.size == 0:
         print("Error: Frame is empty, skipping this iteration.")
         time.sleep(1)  # Đợi một chút trước khi thử lại
         continue  # Bỏ qua vòng lặp này
 
-    # Chuyển ảnh sang đen trắng để tăng tốc độ xử lý
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
     # Nhận diện khuôn mặt trong ảnh
-    faces = face_cascade.detectMultiScale(gray, scaleFactor=1.3, minNeighbors=5)
+    faces = face_cascade.detectMultiScale(frame, scaleFactor=1.3, minNeighbors=5)
 
     # Vẽ hình chữ nhật xung quanh khuôn mặt và chụp ảnh tự động
     for (x, y, w, h) in faces:
