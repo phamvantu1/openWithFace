@@ -89,16 +89,16 @@ def verify_otp():
         otp = data.get('otp')  # OTP từ client gửi lên
 
         if not otp:
-            return jsonify({'error': 'Vui lòng cung cấp mã OTP'}), 400
+            return jsonify({'doorStatus': 0, 'message': 'OTP is missing'}), 400
 
         # Tạo đối tượng OTP
         totp = pyotp.TOTP(SECRET_KEY, interval=30)
 
         # Kiểm tra mã OTP
         if totp.verify(otp):
-            return jsonify({'message': 'OTP hợp lệ'}), 200
+            return jsonify({'doorStatus': 1, 'message': 'OTP verified successfully'}), 200
         else:
-            return jsonify({'message': 'OTP không hợp lệ hoặc đã hết hạn'}), 400
+            return jsonify({'doorStatus': 0, 'message': 'Invalid OTP'}), 401
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -109,4 +109,5 @@ def voice_command():
     return jsonify({'command': result})
 
 if __name__ == '__main__':
-    app.run(port=5000)
+    # app.run(port=5000)
+    app.run(host='0.0.0.0', port=5000)

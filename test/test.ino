@@ -35,8 +35,16 @@ MFRC522 rfid(SS_PIN, RST_PIN); // Instance of the class
 
 const char* ssid = "phamtuu"; // Thay đổi với SSID của bạn
 const char* password = "123456789"; // Thay đổi với mật khẩu WiFi của bạn
-const char* serverUrl = "http://192.168.226.239:3000/log_access"; // Địa chỉ IP máy chủ
-const char* serverUrlpass = "http://192.168.226.239:3000/checkpass"; // Địa chỉ IP máy chủ
+
+// const char* serverUrl = "http://192.168.226.239:3000/log_access"; // Địa chỉ IP máy chủ
+// const char* serverUrlpass = "http://192.168.226.239:3000/checkpass"; // Địa chỉ IP máy chủ
+
+const char* serverUrl = "http://192.168.83.239:3000/log_access"; // Địa chỉ IP máy chủ
+const char* serverUrlpass = "http://192.168.83.239:3000/checkpass"; // Địa chỉ IP máy chủ
+
+const char* serverUrlCheckOTP = "http://192.168.83.239:5000/verify-otp";
+const char* otpServerUrl = "http://192.168.83.239:5000/generate-otp";
+
 
 String inputString = "";
 
@@ -125,6 +133,7 @@ void loop() {
           }
         } else if (key == '#') {
             checkpass(inputString); // Gọi hàm check
+            checkOTP(inputString);
             inputString = ""; // Reset chuỗi nhập vào sau khi kiểm tra
         } else if (key == '*') {
           inputString = "";
@@ -206,6 +215,49 @@ void checkpass(String keyword) {
         lcd.print("Connection Error");
     }
 }
+
+void checkOTP(String otpCode) {
+    WiFiClient client;  // Tạo một đối tượng WiFiClient
+    HTTPClient http;    // Tạo một đối tượng HTTPClient
+    http.begin(client, serverUrlCheckOTP); // URL của API /verify-otp
+
+    http.addHeader("Content-Type", "application/json"); // Đặt tiêu đề
+    String payload = "{\"otp\":\"" + otpCode + "\"}"; // Tạo payload JSON
+
+    int httpResponseCode = http.POST(payload); // Gửi yêu cầu POST
+
+    if (httpResponseCode > 0) {
+        String response = http.getString(); // Nhận phản hồi từ server
+        Serial.println(httpResponseCode); // In mã phản hồi
+        Serial.println(response); // In nội dung phản hồi
+
+        // Hiển thị trên LCD
+        lcd.clear();
+        lcd.setCursor(0, 0);
+        if (response.indexOf("\"doorStatus\":1") > -1) {
+            lcd.print("OTP: Success");
+            doorServo.write(90); // Mở cửa
+            digitalWrite(LED, HIGH); // Bật đèn LED khi cửa mở
+            delay(5000); // Giữ cửa mở trong 5 giây
+            doorServo.write(0); // Đóng cửa
+            digitalWrite(LED, LOW); // Tắt đèn LED khi cửa đóng
+            lcd.clear();
+            lcd.print("close door");
+        } else {
+            lcd.print("OTP: Failure");
+        }
+    } else {
+        Serial.print("Error on sending POST: ");
+        Serial.println(httpResponseCode);
+        lcd.clear();
+        lcd.setCursor(0, 0);
+        lcd.print("Connection Error");
+    }
+    http.end(); // Kết thúc HTTP request
+}
+
+
+
 
 void checkFacialRecognition() {
     WiFiClient client = server.available();

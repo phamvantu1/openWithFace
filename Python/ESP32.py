@@ -1,9 +1,8 @@
 import socket
 import time
 
-# esp32_ip = "192.168.0.104"
-
-esp32_ip = "192.168.226.153"
+# esp32_ip = "192.168.226.153"
+esp32_ip = "192.168.83.153"
 
 esp32_port = 80
 
