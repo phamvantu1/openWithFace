@@ -3,8 +3,11 @@ from flask_cors import CORS
 import os
 import pyotp
 import speech_recognition as sr
+import mysql.connector
+from mysql.connector import Error
 
 from Python.ESP32 import send_command
+from Python.Send_Email import send_email_with_image
 from Python.database import getAttendanceTime, addAttendanceTime, addAttendanceTimeV2
 from Python.voiceController import recognize_speech
 
@@ -14,6 +17,14 @@ UPLOAD_FOLDER = './ImageAttendance'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 # Bí mật dùng để sinh OTP (bạn có thể tạo ngẫu nhiên)
 SECRET_KEY = pyotp.random_base32()
+
+# MySQL database configuration
+db_config = {
+    'user': 'root',
+    'password': '123456',
+    'host': 'localhost',
+    'database': 'smartdoor',
+}
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
@@ -107,6 +118,64 @@ def voice_command():
     # Nhận diện giọng nói và trả về kết quả
     result = recognize_speech()
     return jsonify({'command': result})
+
+# check pass cong 5000
+@app.route('/check_pass', methods=['POST'])
+def checkpass():
+    try:
+        # Kết nối đến cơ sở dữ liệu
+        connection = mysql.connector.connect(**db_config)
+        cursor = connection.cursor(dictionary=True)
+
+        # Nhận từ khóa từ body của request
+        data = request.json
+        keyword = data.get('keyword')
+
+        # Truy vấn kiểm tra mật khẩu
+        query = "SELECT * FROM user_iot WHERE passdoor = %s"
+        cursor.execute(query, (keyword,))
+        results = cursor.fetchall()
+
+        if results:
+            # Nếu tìm thấy, lưu thông tin vào bảng action
+            action_query = """
+                INSERT INTO action (card_number, action_type, status)
+                VALUES (%s, %s, %s)
+            """
+            action_values = ("Pass", "keypad", "SUCCESS")
+
+            cursor.execute(action_query, action_values)
+            connection.commit()
+
+            print('Dữ liệu đã được lưu vào bảng action.')
+            return jsonify({"doorStatus": 1, "message": "Access success."})
+        else:
+            # Không tìm thấy mật khẩu
+            return jsonify({"doorStatus": 0, "message": "Access denied."})
+
+    except Error as e:
+        print("Lỗi truy vấn hoặc kết nối:", e)
+        return jsonify({"message": "Internal Server Error"}), 500
+
+    finally:
+        # Đóng kết nối
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+
+#  gui email port 5000
+@app.route('/send-email', methods=['POST'])
+def send_email():
+    to_email = "tutupham5@gmail.com"
+    subject = "Đây là email cảnh báo có người đột nhập gửi đến phamtu"
+    body = "Xin chào bạn, nhà bạn đang có người cố gắng xâm nhập trái phép. Đây là hình ảnh của họ."
+    image_path = "D:/IOT/openWithFace/openWithFace/Python/image/captured_face.jpg"
+
+    if not all([to_email, subject, body, image_path]):
+        return jsonify({"error": "Thiếu dữ liệu. Vui lòng gửi đủ thông tin."}), 400
+
+    result = send_email_with_image(to_email, subject, body, image_path)
+    return jsonify({"message": result})
 
 if __name__ == '__main__':
     # app.run(port=5000)

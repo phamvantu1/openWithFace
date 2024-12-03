@@ -14,7 +14,7 @@ import mediapipe as mp
 face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
 emotion_detector = FER()
 
-url = 'http://192.168.226.72/cam-lo.jpg'
+url = 'http://192.168.83.72/cam-lo.jpg'
 
 # Đường dẫn thư mục để lưu ảnh
 output_folder  = r'D:\IOT\openWithFace\openWithFace\Python\image'

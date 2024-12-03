@@ -40,12 +40,13 @@ const char* password = "123456789"; // Thay đổi với mật khẩu WiFi của
 // const char* serverUrlpass = "http://192.168.226.239:3000/checkpass"; // Địa chỉ IP máy chủ
 
 const char* serverUrl = "http://192.168.83.239:3000/log_access"; // Địa chỉ IP máy chủ
-const char* serverUrlpass = "http://192.168.83.239:3000/checkpass"; // Địa chỉ IP máy chủ
 
+const char* serverUrlpass = "http://192.168.83.239:5000/check_pass"; // Địa chỉ IP máy chủ
 const char* serverUrlCheckOTP = "http://192.168.83.239:5000/verify-otp";
+const char* sendEmailUrl = "http://192.168.83.239:5000/send-email";
 const char* otpServerUrl = "http://192.168.83.239:5000/generate-otp";
 
-
+int cntFailed  = 0 ; 
 String inputString = "";
 
 WiFiUDP udp; // Tạo đối tượng UDP
@@ -203,9 +204,15 @@ void checkpass(String keyword) {
                 digitalWrite(LED, LOW); // Tắt đèn LED khi cửa đóng
                 lcd.clear();
                 lcd.print("close door");
+                cntFailed = 0;
 
             } else {
                 lcd.print("Access: Failure");
+                cntFailed = cntFailed + 1;
+                if (cntFailed >= 3){
+                  cntFailed = 0;
+                  sendEmail();
+                }
             }
     } else {
         Serial.print("Error on sending POST: ");
@@ -244,7 +251,9 @@ void checkOTP(String otpCode) {
             lcd.clear();
             lcd.print("close door");
         } else {
+          if (otpCode.length() == 6){
             lcd.print("OTP: Failure");
+          }
         }
     } else {
         Serial.print("Error on sending POST: ");
@@ -257,7 +266,28 @@ void checkOTP(String otpCode) {
 }
 
 
+void sendEmail() {
+    WiFiClient client;  // Tạo một đối tượng WiFiClient
+    HTTPClient http;    // Tạo một đối tượng HTTPClient
+    http.begin(client, sendEmailUrl); // URL của API /verify-otp
 
+    http.addHeader("Content-Type", "application/json"); // Đặt tiêu đề
+
+    int httpResponseCode = http.POST(""); // Gửi yêu cầu POST
+
+       if (httpResponseCode > 0) {
+            String response = http.getString();  // Nhận phản hồi từ server
+            Serial.println("Mail thanh cong:");
+            Serial.println("Phản hồi từ server:");
+            Serial.println(response);
+        } else {
+            Serial.println("Mail that bai:");
+            Serial.print("Lỗi gửi yêu cầu POST. Mã lỗi: ");
+            Serial.println(httpResponseCode);
+        }
+
+    http.end(); // Kết thúc HTTP request
+}
 
 void checkFacialRecognition() {
     WiFiClient client = server.available();
