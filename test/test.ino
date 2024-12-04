@@ -297,11 +297,21 @@ void checkFacialRecognition() {
             if (client.available()) {
                 String command = client.readStringUntil('\n');
                 command.trim();
+                Serial.println(command);
                 if (command == "open") {
                     lcd.clear();
                     lcd.print("Open : Success");
                     openCommandReceived = true;
                     openStartTime = millis();
+                }
+                if (command == "host") {
+                    lcd.clear();
+                    lcd.print("HOST");
+                    digitalWrite(LED, HIGH); // Bật đèn LED khi chu nha
+                    delay(10000); // bat den 10s
+                    digitalWrite(LED, LOW); // Tắt đèn LED khi het 10s
+                    lcd.clear();
+                    lcd.print("close door");
                 }
             }
         }

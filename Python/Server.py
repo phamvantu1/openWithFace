@@ -59,6 +59,7 @@ def process(img):
     name = "User does not exist"
     global stime
     global unlock
+    global isHost
 
     imgS = cv2.resize(img, (0, 0), None, fx=0.25, fy=0.25)
     imgS = cv2.cvtColor(imgS, cv2.COLOR_BGR2RGB)
@@ -78,6 +79,11 @@ def process(img):
             name = classNames[matchIndex].upper()
             add_attendance_time(name)
             unlock = True
+            if name == "HOST":
+                isHost = True
+                unlock = False
+            else:
+                isHost = False
         else:
             name = 'Unknown'
 
@@ -90,7 +96,12 @@ def process(img):
     if unlock:
         time.sleep(1)
         send_command("open")
+        print("open1")
         unlock = False
+    if isHost :
+        print("day la host")
+        send_command("host")
+        isHost = False
 
     cv2.imshow('Webcam', img)
     cv2.waitKey(1)
