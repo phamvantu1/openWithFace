@@ -99,10 +99,12 @@ with mp_hands.Hands(max_num_hands=1, min_detection_confidence=0.7, min_tracking_
                 emotion, score = emotion_detector.top_emotion(np.array(image))
                 if emotion == 'sad':
                     print("buồn")
+                    send_esp8266("open")
                 if emotion == 'happy':
                     print("vui")
                 if emotion == 'angry':
                     print("tức giận")
+                    send_esp8266("open")
                 print(f"Detected emotion: {emotion} with score: {score}")
 
         rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)

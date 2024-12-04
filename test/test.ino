@@ -308,7 +308,7 @@ void checkFacialRecognition() {
                     lcd.clear();
                     lcd.print("HOST bat nhac");
                     digitalWrite(LED, HIGH); // Bật đèn LED khi chu nha
-                    delay(20000); // bat den 10s
+                    delay(20000); // bat den 20s
                     digitalWrite(LED, LOW); // Tắt đèn LED khi het 10s
                     lcd.clear();
                     lcd.print("close door");

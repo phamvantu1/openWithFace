@@ -50,3 +50,6 @@ Chân Analog:
 Chân nối giữa quang trở và điện trở (chỗ chúng kết nối) -> Nối với chân A0 của ESP8266.
 
 đèn d5
+
+
+đèn nhạc d8 esp8266
