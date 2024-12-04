@@ -93,7 +93,7 @@ void setup() {
     Serial.println("Connected to WiFi");
 
      // In địa chỉ IP của ESP32
-    Serial.print("ESP32 IP Address: ");
+    Serial.print("ESP32 IP Address v2: ");
     Serial.println(WiFi.localIP()); // In địa chỉ IP ra Serial Monitor
 
     server.begin();
@@ -306,9 +306,9 @@ void checkFacialRecognition() {
                 }
                 if (command == "host") {
                     lcd.clear();
-                    lcd.print("HOST");
+                    lcd.print("HOST bat nhac");
                     digitalWrite(LED, HIGH); // Bật đèn LED khi chu nha
-                    delay(10000); // bat den 10s
+                    delay(20000); // bat den 10s
                     digitalWrite(LED, LOW); // Tắt đèn LED khi het 10s
                     lcd.clear();
                     lcd.print("close door");
