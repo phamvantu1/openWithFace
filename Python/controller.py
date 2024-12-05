@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, send_from_directory, render_template
 from flask_cors import CORS
 import os
 import pyotp
@@ -17,6 +17,10 @@ UPLOAD_FOLDER = './ImageAttendance'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 # Bí mật dùng để sinh OTP (bạn có thể tạo ngẫu nhiên)
 SECRET_KEY = pyotp.random_base32()
+
+@app.route('/')
+def index():
+    return render_template('main.html')
 
 # MySQL database configuration
 db_config = {
