@@ -11,18 +11,19 @@
             background-color: #f8f9fa;
         }
 
- .header-section {
-    background-image: linear-gradient(to right, #6a11cb, #2575fc);
-    color: white;
-    padding: 1rem 0; /* Giảm padding hơn */
-    text-align: center;
-}
+        .header-section {
+            background-image: linear-gradient(to right, #6a11cb, #2575fc);
+            color: white;
+            padding: 1rem 0; /* Giảm padding hơn */
+            text-align: center;
+        }
 
-.header-section h1 {
-    font-size: 1.8rem; /* Giảm kích thước chữ */
-    font-weight: bold;
-    margin-bottom: 0.2rem; /* Giảm thêm margin */
-}
+        .header-section h1 {
+            font-size: 1.8rem; /* Giảm kích thước chữ */
+            font-weight: bold;
+            margin-bottom: 0.2rem; /* Giảm thêm margin */
+        }
+
         .card {
             border: none;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -51,57 +52,139 @@
             transform: scale(1.05);
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         }
+
+        #otpResult {
+            min-height: 50px; /* Đảm bảo chiều cao cố định */
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
     </style>
 </head>
 <body>
 
-    <header class="header-section">
-        <h1>Quản lý hình ảnh</h1>
-    </header>
+<header class="header-section">
+    <h1>Quản lý hình ảnh</h1>
+</header>
 
-    <main class="container my-5">
-        <div class="row">
-            <div class="col-md-6 mb-4">
-                <div class="card">
-                    <div class="card-body">
-                        <h3 class="card-title text-center mb-3">Tải ảnh </h3>
-                        <form id="uploadForm" enctype="multipart/form-data" class="d-flex flex-column align-items-center gap-3">
-                            <input type="file" id="fileInput" name="file" class="form-control" style="max-width: 300px;">
-                            <button type="button" onclick="uploadImage()" class="btn btn-primary">Upload</button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-6 mb-4">
-                <div class="card">
-                    <div class="card-body">
-                        <h3 class="card-title text-center mb-3">Xóa ảnh</h3>
-                        <form id="deleteForm" class="d-flex flex-column align-items-center gap-3">
-                            <select id="filenameSelect" name="filename" class="form-select" style="max-width: 300px;">
-                                <option value="">Select an image to delete</option>
-                            </select>
-                            <button type="button" onclick="deleteImage()" class="btn btn-danger">Delete</button>
-                        </form>
-                    </div>
+<main class="container my-5">
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h3 class="card-title text-center mb-3">Tải ảnh </h3>
+                    <form id="uploadForm" enctype="multipart/form-data"
+                          class="d-flex flex-column align-items-center gap-3">
+                        <input type="file" id="fileInput" name="file" class="form-control" style="max-width: 300px;">
+                        <button type="button" onclick="uploadImage()" class="btn btn-primary">Upload</button>
+                    </form>
                 </div>
             </div>
         </div>
 
-        <h3 class="text-center mb-4">Thư viện hình ảnh</h3>
-        <div id="imageList" class="image-container"></div>
-    </main>
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h3 class="card-title text-center mb-3">Xóa ảnh</h3>
+                    <form id="deleteForm" class="d-flex flex-column align-items-center gap-3">
+                        <select id="filenameSelect" name="filename" class="form-select" style="max-width: 300px;">
+                            <option value="">Select an image to delete</option>
+                        </select>
+                        <button type="button" onclick="deleteImage()" class="btn btn-danger">Delete</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    <script>
-        function uploadImage() {
-            const formData = new FormData();
-            const fileInput = document.getElementById('fileInput');
-            formData.append('file', fileInput.files[0]);
 
-            fetch('http://localhost:5000/upload', {
-                method: 'POST',
-                body: formData
+    <!-- Nhận diện giọng nói và Sinh OTP -->
+    <div class="row">
+        <!-- Nhận diện giọng nói -->
+        <div class="col-md-6 mb-4 d-flex">
+            <div class="card flex-fill">
+                <div class="card-body d-flex flex-column">
+                    <h3 class="card-title text-center mb-3">Nhận diện giọng nói</h3>
+                    <button type="button" onclick="triggerVoiceCommand()" class="btn btn-success">Nhận diện</button>
+                    <div id="voiceResult" class="mt-3 text-center"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sinh OTP -->
+        <div class="col-md-6 mb-4 d-flex">
+            <div class="card flex-fill">
+                <div class="card-body d-flex flex-column">
+                    <h3 class="card-title text-center mb-3">Sinh OTP</h3>
+                    <button type="button" onclick="generateOTP()" class="btn btn-warning">Tạo OTP</button>
+                    <div id="otpResult" class="mt-3 text-center"
+                         style="min-height: 50px; font-size: 1.2em; font-weight: bold;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <h3 class="text-center mb-4">Thư viện hình ảnh</h3>
+    <div id="imageList" class="image-container"></div>
+</main>
+
+<script>
+
+
+    function generateOTP() {
+        // Gọi API sinh OTP
+        fetch('http://192.168.0.101:5000/generate-otp', {method: 'GET'})
+            .then(response => response.json())
+            .then(data => {
+                const otpResultDiv = document.getElementById('otpResult');
+                if (data.otp) {
+                    // Hiển thị OTP trong thẻ kết quả
+                    otpResultDiv.innerHTML = `
+                    <p>OTP: <strong>${data.otp}</strong></p>
+                    <p><small>(Hết hạn sau ${data.expires_in} giây)</small></p>
+                `;
+                } else {
+                    otpResultDiv.innerHTML = `<p class="text-danger">Không thể sinh OTP.</p>`;
+                }
             })
+            .catch(error => {
+                console.error('Error:', error);
+                const otpResultDiv = document.getElementById('otpResult');
+                otpResultDiv.innerHTML = `<p class="text-danger">Lỗi: ${error.message}</p>`;
+            });
+    }
+
+
+    function triggerVoiceCommand() {
+        fetch('http://192.168.0.101:5000/voice-command', {
+            method: 'GET',
+        })
+            .then(response => response.json())
+            .then(data => {
+                const resultDiv = document.getElementById('voiceCommandResult');
+                if (data.command) {
+                    resultDiv.innerHTML = `<p><strong>Kết quả:</strong> ${data.command}</p>`;
+                } else {
+                    resultDiv.innerHTML = `<p class="text-danger">Không nhận diện được lệnh.</p>`;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                const resultDiv = document.getElementById('voiceCommandResult');
+                resultDiv.innerHTML = `<p class="text-danger">Lỗi: ${error.message}</p>`;
+            });
+    }
+
+    function uploadImage() {
+        const formData = new FormData();
+        const fileInput = document.getElementById('fileInput');
+        formData.append('file', fileInput.files[0]);
+
+        fetch('http://localhost:5000/upload', {
+            method: 'POST',
+            body: formData
+        })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
@@ -114,18 +197,18 @@
             .catch(error => {
                 console.error('Error:', error);
             });
-        }
+    }
 
-        function deleteImage() {
-            const filename = document.getElementById('filenameSelect').value;
+    function deleteImage() {
+        const filename = document.getElementById('filenameSelect').value;
 
-            fetch('http://localhost:5000/delete', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ filename: filename })
-            })
+        fetch('http://localhost:5000/delete', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({filename: filename})
+        })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
@@ -138,10 +221,10 @@
             .catch(error => {
                 console.error('Error:', error);
             });
-        }
+    }
 
-        function populateImageList() {
-            fetch('http://localhost:5000/list')
+    function populateImageList() {
+        fetch('http://localhost:5000/list')
             .then(response => response.json())
             .then(data => {
                 const filenameSelect = document.getElementById('filenameSelect');
@@ -168,12 +251,12 @@
             .catch(error => {
                 console.error('Error:', error);
             });
-        }
+    }
 
-        // Populate the image list when the page loads
-        window.onload = populateImageList;
-    </script>
+    // Populate the image list when the page loads
+    window.onload = populateImageList;
+</script>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
