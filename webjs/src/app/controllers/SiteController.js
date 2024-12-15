@@ -1,226 +1,433 @@
 const express = require('express');
-const app = express();
-const socket = require('../../socket/socket');
+const jwt = require('jsonwebtoken');
 const db = require('../../config/db/DBcontext');
-let userLogs = [];
+const socket = require('../../socket/socket');
+const { checkAuth, checkRole } = require('../../middlewares/authMiddleware'); // Middleware for checking auth and role
 const axios = require('axios');
+const fs = require('fs');
+const path = require('path');
 class SiteController {
 
-    login(req,res){
-        res.render('login.html');
-    }
-
-    home(req, res) {
-        if (!req.session.userID) {
-            return res.redirect('/login');
-        }
-
-        res.render('main.html', {
-            username: req.session.username
-        });
-    }
-
-    updatepass(req, res) {
-    const { currentPassword, newPassword } = req.body;
-    const userId = req.session.userID; // Lấy ID người dùng hiện tại từ session hoặc token
-    console.log(req.body);
-
-    // Truy vấn để lấy mật khẩu hiện tại
-    db.query('SELECT passdoor FROM user_iot WHERE id = ?', [userId], (error, results) => {
-        if (error) {
-            console.error("Lỗi truy vấn:", error);
-            return res.status(500).json({ message: "Internal Server Error" });
-        }
-
-        if (results.length === 0) {
-            return res.status(404).json({ message: "Người dùng không tồn tại." });
-        }
-
-        // Kiểm tra mật khẩu hiện tại
-        const user = results[0];
-        console.log(user.passdoor);
-        
-        if (user.passdoor !== currentPassword) {
-            return res.status(400).json({ message: "Mật khẩu hiện tại không chính xác." });
-        }
-
-        // Cập nhật mật khẩu mới trong cơ sở dữ liệu
-        db.query('UPDATE user_iot SET passdoor = ? WHERE id = ?', [newPassword, userId], (err, result) => {
-            if (err) {
-                console.error("Lỗi cập nhật mật khẩu:", err);
-                return res.status(500).json({ message: "Internal Server Error" });
-            }
-
-            // Chỉ gửi phản hồi một lần
-            res.json({ message: "Đổi mật khẩu thành công." });
-            // Không nên có thêm res.redirect('/') ở đây nếu đã sử dụng res.json()
-        });
-    });
-}
-
-    handleLogin(req, res) {
+    // User login API
+    async login(req, res) {
         const { username, password } = req.body;
-
+        console.log(username);
+        console.log(password);
         const query = 'SELECT * FROM user_iot WHERE user = ? AND password = ?';
+
         db.query(query, [username, password], (err, results) => {
             if (err) {
-                console.error('Lỗi truy vấn:', err.message);
-                return res.render('login.html', { error: 'Đã xảy ra lỗi. Vui lòng thử lại.' });
+                console.error('Database error:', err.message);
+                return res.status(500).json({
+                    status: 'error',
+                    message: 'Database error',
+                    data: null
+                });
             }
-
             if (results.length > 0) {
                 const user = results[0];
-                req.session.userID = user.id; 
-                req.session.username = user.ten; 
-                res.redirect('/'); 
+                console.log(user);
+
+                const token = jwt.sign({ userID: user.id, username: user.ten, role: user.role}, 'secret_key', { expiresIn: '1h' });
+                return res.status(200).json({
+                    status: 'success',
+                    message: 'Login successful',
+                    data: { token }
+                });
             } else {
-                res.render('login.html', { error: 'Tên người dùng hoặc mật khẩu không đúng' });
+                console.log(results);
+                return res.status(400).json({
+                    status: 'fail',
+                    message: 'Invalid username or password',
+                    data: null
+                });
             }
         });
     }
-    dulieu(req, res) {
-        res.render('dulieu.html', {
-            username: req.session.username
+
+    // Middleware protected home route
+    home(req, res) {
+        res.json({
+            status: 'success',
+            message: 'Welcome',
+            data: null
         });
     }
 
-    logAccess(req, res) {
+    // Update password (authentication required)
+    async updatePass(req, res) {
+        const { currentPassword, newPassword } = req.body;
+        const userId = req.user.userID;  // Get user ID from JWT token
+        console.log(req.user)
+        db.query('SELECT passdoor FROM user_iot WHERE id = ?', [userId], (error, results) => {
+            if (error) return res.status(500).json({
+                status: 'error',
+                message: "Internal Server Error",
+                data: null
+            });
+            if (results.length === 0) return res.status(404).json({
+                status: 'fail',
+                message: "User not found",
+                data: null
+            });
+
+            const user = results[0];
+            if (user.passdoor !== currentPassword) {
+                return res.status(400).json({
+                    status: 'fail',
+                    message: "Incorrect current password",
+                    data: null
+                });
+            }
+
+            db.query('UPDATE user_iot SET passdoor = ? WHERE id = ?', [newPassword, userId], (err, result) => {
+                if (err) return res.status(500).json({
+                    status: 'error',
+                    message: "Failed to update password",
+                    data: null
+                });
+                res.status(200).json({
+                    status: 'success',
+                    message: "Password updated successfully",
+                    data: null
+                });
+            });
+        });
+    }
+
+    // Log access (authentication required)
+    logAccess = async (req, res) => {
         const { userID, time } = req.body;
-        console.log('Received:', { userID, time });
+        const imageUrl = "http://127.0.0.1:5000/get-image";
+        const imageFolder = path.join(__dirname, 'images');
 
-        const query = 'SELECT * FROM card_lock WHERE id_the = ?';
-        db.query(query, [userID], (err, results) => {
-            if (err) {
-                console.error('Lỗi truy vấn:', err.message);
-                return res.json({ success: false, message: 'Lỗi khi kiểm tra thẻ' });
-            }
+        // Tạo thư mục nếu chưa tồn tại
+        if (!fs.existsSync(imageFolder)) {
+            fs.mkdirSync(imageFolder, { recursive: true });
+        }
 
-            const doorStatus = results.length > 0 ? 1 : 0;
+        // Tải ảnh và lưu vào thư mục
+        const downloadImage = async () => {
+            const imageFileName = `${Date.now()}.jpg`; // Đặt tên file dựa trên timestamp
+            const imagePath = path.join(imageFolder, imageFileName);
 
-            const logEntry = {
-                id: userID,
-                time: time,
-                date: new Date().toLocaleDateString(),
-                log: doorStatus === 1 ? "Success" : "Failure"
-            };
-
-            userLogs.push(logEntry);
-            socket.getIO().emit('doorStatus', userLogs);
-
-            // Lưu vào bảng `action` nếu mở thành công
-            if (doorStatus === 1) {
-
-                const userName = results[0].ten; // Lấy tên từ kết quả truy vấn
-
-                const actionQuery = `
-                    INSERT INTO action (card_number, action_type, status) 
-                    VALUES (?, ?, ?)
-                `;
-                const actionValues = [
-                    userName,              // card_number: ID của thẻ được sử dụng
-                    'card',    // action_type: Loại hành động (ví dụ: quyền truy cập được cấp)
-                    'SUCCESS'          // status: Trạng thái hành động
-
-                ];
-
-                db.query(actionQuery, actionValues, (actionErr) => {
-                    if (actionErr) {
-                        console.error('Lỗi khi lưu vào bảng action:', actionErr.message);
-                    } else {
-                        console.log('Dữ liệu đã được lưu vào bảng action');
-                    }
+            try {
+                const response = await axios({
+                    method: 'get',
+                    url: imageUrl,
+                    responseType: 'stream',
                 });
+
+                const writer = fs.createWriteStream(imagePath);
+                response.data.pipe(writer);
+
+                return new Promise((resolve, reject) => {
+                    writer.on('finish', () => resolve(imagePath));
+                    writer.on('error', reject);
+                });
+            } catch (error) {
+                throw new Error(`Error downloading image: ${error.message}`);
             }
+        };
+        console.log("ds");
+        try {
+            const imagePath = await downloadImage(); // Chờ tải ảnh xong
+            console.log('Image saved:', imagePath);
 
-            res.json({ success: true, message: 'Logged successfully', userLogs: userLogs, doorStatus: doorStatus });
-        });
-    }
+            // Tiếp tục xử lý cơ sở dữ liệu
+            console.log(userID, time);
+            db.query('SELECT * FROM card_lock WHERE id_the = ?', [userID], (err, results) => {
+                if (err) {
+                    return res.status(500).json({
+                        status: 'error',
+                        message: 'Error querying database',
+                        data: null,
+                    });
+                }
+
+                const doorStatus = results.length > 0 ? 1 : 0;
+                const logEntry = {
+                    id: userID,
+                    time,
+                    date: new Date().toLocaleDateString(),
+                    log: doorStatus === 1 ? "Success" : "Failure",
+                    image: imagePath,
+                };
+
+                socket.getIO().emit('doorStatus', logEntry);
+
+                if (doorStatus === 1) {
+                    console.log(results);
+                    const user_id = results[0].user_id;
+                    const actionQuery =
+                        'INSERT INTO action (card_number, action_type, status, user_id, image) VALUES (?, ?, ?, ?, ?)';
+                    db.query(
+                        actionQuery,
+                        [results[0].ten, 'card', 'SUCCESS', user_id, imagePath],
+                        (actionErr) => {
+                            if (actionErr) console.error('Error inserting action:', actionErr.message);
+                        }
+                    );
+                }
+
+                res.status(200).json({
+                    status: 'success',
+                    message: 'Log entry created',
+                    data: { logEntry },
+                });
+            });
+        } catch (error) {
+            console.error(error.message);
+            res.status(500).json({
+                status: 'error',
+                message: error.message,
+            });
+        }
+    };
 
 
-    checkpass(req, res) {
-        const keyword = req.body.keyword; 
-        const query = 'SELECT * FROM user_iot WHERE passdoor = ?';
-    
-        // Thực hiện truy vấn
-        db.query(query, [keyword], (error, results) => {
-            if (error) {
-                console.error("Lỗi truy vấn:", error);
-                return res.status(500).json({ message: "Internal Server Error" });
-            }
-    
-            // Kiểm tra kết quả truy vấn
+    // Check password (authentication required)
+    checkPass(req, res) {
+        const { keyword } = req.body;
+
+        db.query('SELECT * FROM user_iot WHERE passdoor = ?', [keyword], (error, results) => {
+            if (error) return res.status(500).json({
+                status: 'error',
+                message: 'Database error',
+                data: null
+            });
             if (results.length > 0) {
-                // Thông tin cần lưu
-                const actionQuery = `
-                    INSERT INTO action (card_number, action_type, status ) 
-                    VALUES (?, ?, ?)
-                `;
-                const actionValues = [
-                     "Pass",       // card_number: ID của người dùng hoặc thẻ (giả định tồn tại trong bảng user_iot)
-                    'keypad',         // action_type: Loại hành động
-                    'SUCCESS'           // status: Thành công
-                   
-                ];
-    
-                // Lưu vào bảng action
-                db.query(actionQuery, actionValues, (actionErr) => {
-                    if (actionErr) {
-                        console.error('Lỗi khi lưu vào bảng action:', actionErr.message);
-                        return res.status(500).json({ message: "Failed to log action" });
-                    }
-                    console.log('Dữ liệu đã được lưu vào bảng action');
-                    res.json({ doorStatus: 1, message: "Access granted." });
+                db.query('INSERT INTO action (card_number, action_type, status) VALUES (?, ?, ?)', ['Pass', 'keypad', 'SUCCESS'], (actionErr) => {
+                    if (actionErr) return res.status(500).json({
+                        status: 'error',
+                        message: 'Failed to log action',
+                        data: null
+                    });
+                    res.json({
+                        status: 'success',
+                        doorStatus: 1,
+                        message: 'Access granted',
+                        data: null
+                    });
                 });
             } else {
-                res.json({ doorStatus: 0, message: "Access denied." });
+                res.json({
+                    status: 'fail',
+                    doorStatus: 0,
+                    message: 'Access denied',
+                    data: null
+                });
             }
         });
     }
-    
-    checkapp(req, res) {
-        const doorStatus = req.body.doorStatus; // Lấy trạng thái cửa từ body của yêu cầu
-        console.log('Received doorStatus:', doorStatus);
-        if (doorStatus == 1) {
-            res.json({ doorStatus: 1, message: "Door opened." }); // Mở cửa
-        } else {
-            res.json({ doorStatus: 0, message: "Door closed." }); // Đóng cửa
-        }
+
+    // Create card lock (admin)
+    async createCardLock(req, res) {
+        const { ten, id_the } = req.body;
+        const userId =  req.user.userID;
+
+        const query = 'INSERT INTO card_lock (ten, id_the, ngaytao, user_id) VALUES (?, ?, CURDATE(), ?)';
+        db.query(query, [ten, id_the, userId], (err, results) => {
+            if (err) return res.status(500).json({
+                status: 'error',
+                message: 'Database error',
+                data: null
+            });
+            res.status(201).json({
+                status: 'success',
+                message: 'Card created successfully',
+                data: { cardID: results.insertId }
+            });
+        });
     }
-   
-    
 
+    // Update card lock (admin)
+    updateCard(req, res) {
+        const { cardID } = req.params;
+        const { ten, id_the } = req.body;
 
+        const query = 'UPDATE card_lock SET ten = ?, id_the = ? WHERE id = ?';
+        db.query(query, [ten, id_the, cardID], (err, results) => {
+            if (err) return res.status(500).json({
+                status: 'error',
+                message: 'Database error',
+                data: null
+            });
+            if (results.affectedRows > 0) {
+                res.status(200).json({
+                    status: 'success',
+                    message: 'Card updated successfully',
+                    data: null
+                });
+            } else {
+                res.status(404).json({
+                    status: 'fail',
+                    message: 'Card not found',
+                    data: null
+                });
+            }
+        });
+    }
 
-    Quanlythe(req,res){
-        const query = 'SELECT * FROM card_lock';
-        db.query(query, (err, results) => {
+    // Delete card lock (admin)
+    deleteCard(req, res) {
+        const { cardID } = req.params;
+
+        db.query('DELETE FROM card_lock WHERE id = ?', [cardID], (err, results) => {
+            if (err) return res.status(500).json({
+                status: 'error',
+                message: 'Database error',
+                data: null
+            });
+            if (results.affectedRows > 0) {
+                res.status(200).json({
+                    status: 'success',
+                    message: 'Card deleted successfully',
+                    data: null
+                });
+            } else {
+                res.status(404).json({
+                    status: 'fail',
+                    message: 'Card not found',
+                    data: null
+                });
+            }
+        });
+    }
+
+    // Logout (authentication required)
+    logout(req, res) {
+        // Optional: You can clear session or token-based invalidation logic here if needed
+        res.status(200).json({
+            status: 'success',
+            message: 'Logged out successfully',
+            data: null
+        });
+    }
+
+    // Get all card locks (Admin only)
+// Get all cards (Admin can view all, non-admin can view their own cards only)
+async getAllCards(req, res) {
+    const userId = req.user.userID;
+
+    // Check if the user has an admin role
+    if (req.user.role === 'admin') {
+        // Admin can see all cards
+        db.query('SELECT * FROM card_lock', (err, results) => {
             if (err) {
-                console.error('Lỗi truy vấn:', err.message);
-                return res.render('thetu.html', { error: 'Đã xảy ra lỗi khi lấy dữ liệu.' });
+                return res.status(500).json({
+                    status: 'error',
+                    message: 'Database error',
+                    data: null
+                });
             }
-            res.render('thetu.html', {
-                cardLocks: results,
-                username: req.session.username
-             });
+            res.status(200).json({
+                status: 'success',
+                message: 'All cards retrieved successfully',
+                data: results
+            });
         });
-    }
-    createCardLock(req, res) {
-    const { ten, id_the } = req.body; 
+    } else {
+        // Non-admin can only see their own cards
+        db.query('SELECT * FROM card_lock WHERE user_id = ?', [userId], (err, results) => {
+            if (err) {
+                return res.status(500).json({
+                    status: 'error',
+                    message: 'Database error',
+                    data: null
+                });
+            }
 
-    const query = 'INSERT INTO card_lock (ten, id_the, ngaytao) VALUES (?, ?, CURDATE())';
-    db.query(query, [ten, id_the], (err, results) => {
-        if (err) {
-            console.error('Lỗi truy vấn:', err.message);
-            return res.render('main.html', { error: 'Đã xảy ra lỗi khi tạo khóa.' });
-        }
-        res.redirect('/thetu'); 
-    });
-    }
-    keypad(req,res){
-        res.render('keypad.html', {
-            username: req.session.username
+            res.status(200).json({
+                status: 'success',
+                message: 'Your cards retrieved successfully',
+                data: results
+            });
         });
     }
+}
+
+
+async getAllUsers(req, res) {
+    const userId = req.user.userID;
+
+    // Check if the user has an admin role
+    if (req.user.role !== 'admin') {
+        return res.status(403).json({
+            status: 'fail',
+            message: 'Access denied: Admins only',
+            data: null
+        });
+    }
+
+    db.query('SELECT * FROM user_iot WHERE role != "admin"', (err, results) => {
+        if (err) {
+            return res.status(500).json({
+                status: 'error',
+                message: 'Database error',
+                data: null
+            });
+        }
+
+        res.status(200).json({
+            status: 'success',
+            message: 'All users retrieved successfully',
+            data: results
+        });
+    });
+}
+
+// Register a new user
+async register(req, res) {
+    const { username, password, passdoor, ten } = req.body;
+
+    // Check if all required fields are provided
+    if (!username || !password || !passdoor) {
+        return res.status(400).json({
+            status: 'fail',
+            message: 'Please provide all required fields: username, password, passdoor',
+            data: null
+        });
+    }
+
+    // Check if username already exists
+    db.query('SELECT * FROM user_iot WHERE user = ?', [username], (err, results) => {
+        if (err) {
+            return res.status(500).json({
+                status: 'error',
+                message: 'Database error',
+                data: null
+            });
+        }
+
+        if (results.length > 0) {
+            return res.status(400).json({
+                status: 'fail',
+                message: 'Username already exists',
+                data: null
+            });
+        }
+
+        // Insert the new user into the database
+        const query = 'INSERT INTO user_iot (user, password, passdoor, ten) VALUES (?, ?, ?, ?)';
+        db.query(query, [username, password, passdoor, ten], (err, results) => {
+            if (err) {
+                return res.status(500).json({
+                    status: 'error',
+                    message: 'Failed to register user',
+                    data: null
+                });
+            }
+
+            res.status(201).json({
+                status: 'success',
+                message: 'User registered successfully',
+                data: { userID: results.insertId, username }
+            });
+        });
+    });
+}
 
 }
+
 module.exports = new SiteController();

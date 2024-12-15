@@ -17,6 +17,7 @@
     "express-session": "^1.18.1",
     "fs": "^0.0.1-security",
     "iotbtl": "file:",
+    "jsonwebtoken": "^9.0.2",
     "method-override": "^3.0.0",
     "morgan": "^1.10.0",
     "mysql2": "^3.11.3",

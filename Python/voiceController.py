@@ -1,7 +1,7 @@
 from flask import Flask, jsonify
 import speech_recognition as sr
 
-from Python.ESP32 import send_command
+from ESP32 import send_command
 
 
 # Hàm nhận diện giọng nói và thực hiện hành động

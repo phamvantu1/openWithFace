@@ -1,20 +1,25 @@
 const express = require('express');
+const siteController = require('../app/controllers/SiteController');
+const { checkAuth, checkRole } = require('../middlewares/authMiddleware');
+
+// Initialize the router
 const router = express.Router();
 
-
-const siteController = require('../app/controllers/SiteController');
-router.post('/keypad/update', siteController.updatepass);
-router.post('/checkpass', siteController.checkpass);
-router.post('/checkapp', siteController.checkapp);
-router.post('/create_card_lock', siteController.createCardLock);
-router.post('/log_access',siteController.logAccess);
-router.post('/login',siteController.handleLogin);
-router.get('/history',siteController.dulieu);
-router.get('/keypad',siteController.keypad);
-router.get('/thetu',siteController.Quanlythe);
-router.get('/dulieu',siteController.dulieu);
-router.get('/login', siteController.login);
+// Define routes
 router.get('/', siteController.home);
+router.post('/login', siteController.login);
+router.post('/logout', checkAuth ,siteController.logout);
+router.put('/update-password', checkAuth, siteController.updatePass);
+router.post('/log_access',  siteController.logAccess);
+router.post('/checkpass',  siteController.checkPass);
+router.post('/create-card',checkAuth,  siteController.createCardLock);
+router.put('/update-card/:cardID',  siteController.updateCard);
+router.delete('/delete-card/:cardID',  siteController.deleteCard);
+router.get('/get-all-cards', checkAuth, siteController.getAllCards); // Get all cards (admin or own)
+router.get('/get-all-users', checkAuth, siteController.getAllUsers); // Get all users except admin
 
+router.post('/register', siteController.register);
 
-module.exports = router;
+module.exports = (app) => {
+    app.use('/api', router);  // Prefix all routes with /api
+};

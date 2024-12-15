@@ -12,7 +12,7 @@ from ESP32 import *
 # MySQL database configuration
 db_config = {
     'user': 'root',
-    'password': '123456',
+    'password': '',
     'host': 'localhost',
     'database': 'smartdoor',
 }
@@ -21,7 +21,7 @@ db_config = {
 conn = mysql.connector.connect(**db_config)
 cursor = conn.cursor()
 
-path = './ImageAttendance'
+path = './Python/ImageAttendance'
 images = []
 classNames = []
 stime = 0

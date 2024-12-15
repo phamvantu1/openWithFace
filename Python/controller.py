@@ -5,16 +5,20 @@ import pyotp
 import speech_recognition as sr
 import mysql.connector
 from mysql.connector import Error
-
-from Python.ESP32 import send_command
-from Python.Send_Email import send_email_with_image
-from Python.database import getAttendanceTime, addAttendanceTime, addAttendanceTimeV2
-from Python.voiceController import recognize_speech
+import requests
+from datetime import datetime
+from ESP32 import send_command
+from Send_Email import send_email_with_image
+from database import getAttendanceTime, addAttendanceTime, addAttendanceTimeV2
+from voiceController import recognize_speech
 
 app = Flask(__name__)
 CORS(app)  # Cho phép CORS cho mọi nguồn
 UPLOAD_FOLDER = './ImageAttendance'
+CAPTURED_IMAGES_FOLDER = './CapturedImages'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['CAPTURED_IMAGES_FOLDER'] = CAPTURED_IMAGES_FOLDER
+os.makedirs(CAPTURED_IMAGES_FOLDER, exist_ok=True)
 # Bí mật dùng để sinh OTP (bạn có thể tạo ngẫu nhiên)
 SECRET_KEY = pyotp.random_base32()
 
@@ -22,10 +26,17 @@ SECRET_KEY = pyotp.random_base32()
 def index():
     return render_template('main.html')
 
+@app.route('/get-image')
+def get_image12321():
+    image_directory = './image'
+    image_filename = 'captured_face.jpg'
+
+    # Trả về file ảnh từ thư mục
+    return send_from_directory(image_directory, image_filename)
 # MySQL database configuration
 db_config = {
     'user': 'root',
-    'password': '123456',
+    'password': '',
     'host': 'localhost',
     'database': 'smartdoor',
 }
@@ -127,45 +138,59 @@ def voice_command():
 @app.route('/check_pass', methods=['POST'])
 def checkpass():
     try:
-        # Kết nối đến cơ sở dữ liệu
         connection = mysql.connector.connect(**db_config)
         cursor = connection.cursor(dictionary=True)
 
-        # Nhận từ khóa từ body của request
         data = request.json
         keyword = data.get('keyword')
 
-        # Truy vấn kiểm tra mật khẩu
+        # Check if the password exists in the database
         query = "SELECT * FROM user_iot WHERE passdoor = %s"
         cursor.execute(query, (keyword,))
         results = cursor.fetchall()
 
         if results:
-            # Nếu tìm thấy, lưu thông tin vào bảng action
-            action_query = """
-                INSERT INTO action (card_number, action_type, status)
-                VALUES (%s, %s, %s)
-            """
-            action_values = ("Pass", "keypad", "SUCCESS")
+            # Save the image upon successful password verification
+            image_path = save_attendance_image()
 
+            # Save the action into the database
+            action_query = """
+                INSERT INTO action (card_number, action_type, status, image)
+                VALUES (%s, %s, %s, %s)
+            """
+            action_values = ("Pass", "keypad", "SUCCESS", image_path)
             cursor.execute(action_query, action_values)
             connection.commit()
 
-            print('Dữ liệu đã được lưu vào bảng action.')
+            print('Data saved to action table with image.')
             return jsonify({"doorStatus": 1, "message": "Access success."})
         else:
-            # Không tìm thấy mật khẩu
             return jsonify({"doorStatus": 0, "message": "Access denied."})
 
     except Error as e:
-        print("Lỗi truy vấn hoặc kết nối:", e)
+        print("Database query or connection error:", e)
         return jsonify({"message": "Internal Server Error"}), 500
 
     finally:
-        # Đóng kết nối
         if connection.is_connected():
             cursor.close()
             connection.close()
+
+# Save attendance image to new folder
+def save_attendance_image():
+    try:
+        image_filename = 'captured_face.jpg'
+        image_path = os.path.join(app.config['CAPTURED_IMAGES_FOLDER'], image_filename)
+
+        # Assuming the image is taken and saved
+        with open(image_path, 'wb') as f:
+            f.write(requests.get('http://127.0.0.1:5000/get-image').content)
+
+        print(f"Image saved at {image_path}")
+        return image_path
+    except Exception as e:
+        print(f"Error saving image: {e}")
+        return None
 
 #  gui email port 5000
 @app.route('/send-email', methods=['POST'])

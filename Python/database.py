@@ -3,7 +3,7 @@ from datetime import datetime
 
 db_config = {
     'user': 'root',
-    'password': '123456',
+    'password': '',
     'host': 'localhost',
     'database': 'smartdoor',
 }

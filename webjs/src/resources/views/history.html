@@ -4,150 +4,125 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Door Control</title>
+    <title>Smart Door Control - Access Log</title>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="/socket.io/socket.io.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
             font-family: 'Roboto', sans-serif;
-            background-color: #e9ecef;
-            /* Slightly gray background */
+            background: linear-gradient(135deg, #e0f7fa, #80deea, #4dd0e1);
             color: #333;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
-            align-items: center;
         }
 
-        nav {
-            width: 100%;
+        .navbar {
             background-color: #343a40;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 20px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            border-radius: 8px;
-            margin-bottom: 20px;
         }
 
-        .menu-left {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .logo {
-            color: white;
-            font-size: 24px;
-            font-weight: bold;
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
-        }
-
-        nav a {
-            color: white;
-            text-decoration: none;
-            padding: 10px 15px;
-            border-radius: 5px;
-            transition: background-color 0.3s, color 0.3s;
-        }
-
-        nav a {
-            color: white;
-            text-decoration: none;
-            padding: 10px 15px;
-            border-radius: 5px;
-            transition: background-color 0.3s;
-        }
-
-        nav a:hover {
-            background-color: #0056b3;
-            color: #f4f4f4;
-        }
-
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 20px;
+        .navbar .navbar-brand,
+        .navbar .nav-link {
             color: white;
         }
 
-        .logout-button {
-            padding: 5px 10px;
-            background-color: #ff4c4c;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        .logout-button:hover {
-            background-color: #e63939;
+        .navbar .nav-link:hover {
+            color: #80deea;
         }
 
         .content {
-            padding: 20px;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-top: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
         h2 {
-            color: #343a40;
-            border-bottom: 2px solid #ddd;
-            padding-bottom: 5px;
+            color: #007bff;
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #80deea;
         }
 
-        .table {
-            margin-top: 20px;
+        .status-success {
+            color: #28a745;
+            font-weight: bold;
         }
 
-        .thead-dark {
-            background-color: #343a40;
-            color: white;
-        }
-
-        .table-striped tbody tr:nth-of-type(odd) {
-            background-color: #f9f9f9;
+        .status-failure {
+            color: #dc3545;
+            font-weight: bold;
         }
     </style>
 </head>
 
 <body>
-    <nav>
-        <div class="menu-left">
-            <div class="logo">Smart Door Control</div>
+    <!-- Navbar -->
+    <nav class="d-flex justify-content-between align-items-center">
+        <div class="logo">Smart Door Control</div>
+        <div>
             <a href="/">Home</a>
             <a href="/dulieu">Dữ liệu</a>
             <a href="/history">Lịch sử</a>
-        </div>
-
-        <div class="user-info">
-            <span>Xin chào, <%= username %>!</span>
-            <button class="logout-button">Logout</button>
+            <a href="http://127.0.0.1:5000/openWithFace/Website/main.html">Quản lý khuôn mặt</a>
         </div>
     </nav>
 
-    <div class="content container mt-4">
+    <!-- Content -->
+    <div class="container content">
         <h2 class="mb-4">Access Log</h2>
-        <table class="table table-striped table-bordered">
-            <thead class="thead-dark">
-                <tr>
-                    <th>Username</th>
-                    <th>Card Number</th>
-                    <th>Date & Time</th>
-                    <th>Door Status</th>
-                </tr>
-            </thead>
-            <tbody id="accessLogTable"></tbody>
-        </table>
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>Username</th>
+                        <th>Card Number</th>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Door Status</th>
+                    </tr>
+                </thead>
+                <tbody id="accessLogTable">
+                    <!-- Data will be appended here dynamically -->
+                </tbody>
+            </table>
+        </div>
     </div>
+
+    <script>
+        // Connect to the socket
+        const socket = io();
+
+        // Listen for door status updates
+        socket.on('doorStatus', function (logs) {
+            const tableBody = $('#accessLogTable');
+            tableBody.empty(); // Clear the table body
+
+            logs.forEach(log => {
+                const statusClass = log.doorStatus === 1 ? "status-success" : "status-failure";
+                const statusText = log.doorStatus === 1 ? "Success" : "Failure";
+
+                tableBody.append(`
+                    <tr>
+                        <td>${log.username}</td>
+                        <td>${log.cardNumber}</td>
+                        <td>${log.date}</td>
+                        <td>${log.time}</td>
+                        <td class="${statusClass}">${statusText}</td>
+                    </tr>
+                `);
+            });
+        });
+    </script>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 
 </html>

@@ -4,7 +4,6 @@ import urllib.request
 import numpy as np
 import os
 import mysql.connector
-from fer import FER
 from PIL import Image
 from ESP32 import *
 import Server
@@ -12,7 +11,6 @@ import mediapipe as mp
 
 # Initialize face detection
 face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
-emotion_detector = FER()
 
 url = 'http://192.168.83.72/cam-lo.jpg'
 
@@ -21,7 +19,7 @@ output_folder  = r'D:\IOT\openWithFace\openWithFace\Python\image'
 
 db_config = {
     'user': 'root',
-    'password': '123456',
+    'password': '',
     'host': 'localhost',
     'database': 'face_recognition',
 }
@@ -65,7 +63,7 @@ def detect_wave(landmarks):
                 return True
     return False
 
-with mp_hands.Hands(max_num_hands=1, min_detection_confidence=0.7, min_tracking_confidence=0.7) as hands:
+
     while True:
         capture_flag = False
         img = urllib.request.urlopen(url)
