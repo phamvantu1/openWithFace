@@ -1,0 +1,56 @@
+<div class="container my-5">
+    <div class="row">
+        <!-- Tải ảnh -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h3 class="card-title text-center mb-3">Tải ảnh</h3>
+                    <form id="uploadForm" enctype="multipart/form-data" class="d-flex flex-column align-items-center gap-3">
+                        <input type="file" id="fileInput" name="file" class="form-control" style="max-width: 300px;">
+                        <button type="button" onclick="uploadImage()" class="btn btn-primary">Upload</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Xóa ảnh -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h3 class="card-title text-center mb-3">Xóa ảnh</h3>
+                    <form id="deleteForm" class="d-flex flex-column align-items-center gap-3">
+                        <select id="filenameSelect" name="filename" class="form-select" style="max-width: 300px;">
+                            <option value="">Select an image to delete</option>
+                        </select>
+                        <button type="button" onclick="deleteImage()" class="btn btn-danger">Delete</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Nhận diện giọng nói và Sinh OTP -->
+    <div class="row">
+        <!-- Nhận diện giọng nói -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h3 class="card-title text-center mb-3">Nhận diện giọng nói</h3>
+                    <button type="button" onclick="recognizeVoice()" class="btn btn-success">Nhận diện</button>
+                    <div id="voiceResult" class="mt-3 text-center"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sinh OTP -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h3 class="card-title text-center mb-3">Sinh OTP</h3>
+                    <button type="button" onclick="generateOTP()" class="btn btn-warning">Tạo OTP</button>
+                    <div id="otpResult" class="mt-3 text-center"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
