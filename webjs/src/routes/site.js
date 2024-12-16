@@ -21,6 +21,8 @@ router.get('/get-all-logs',  siteController.getAllActions); // Get all logs
 router.post('/register', siteController.register);
 router.get('/getcardById/:cardId', siteController.getCardById);
 router.get('/getuserById/:userId', siteController.getUserById);
+router.get('/getProfile',checkAuth, siteController.getProfile);
+router.put('/update-profile', checkAuth, siteController.updateProfile);
 
 module.exports = (app) => {
     app.use('/api', router);  // Prefix all routes with /api

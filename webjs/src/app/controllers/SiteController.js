@@ -499,6 +499,75 @@ getUserById (req, res)  {
         }
     });
 };
+getProfile(req, res) {
+    const userId = req.user.userID;
+    // console.log(req.user)
+    const query = 'SELECT * FROM user_iot WHERE id = ?';
+
+    db.query(query, [userId], (err, results) => {
+        if (err) {
+            return res.status(500).json({
+                status: 'error',
+                message: 'Database error',
+                data: null
+            });
+        }
+
+        if (results.length > 0) {
+            res.status(200).json({
+                status: 'success',
+                message: 'Username retrieved successfully',
+                data: results
+            });
+        } else {
+            res.status(404).json({
+                status: 'fail',
+                message: 'User not found',
+                data: null
+            });
+        }
+    });
+};
+
+updateProfile(req, res) {
+    const userId = req.user.userID; // Lấy userID từ token
+    const { password, passdoor,ten } = req.body; // Dữ liệu cần cập nhật
+    console.log(req.body)
+    // Kiểm tra xem các trường cần thiết có được gửi lên không
+    if (!password || !passdoor) {
+        return res.status(400).json({
+            status: 'fail',
+            message: 'Password and Passdoor are required',
+            data: null
+        });
+    }
+
+    const query = 'UPDATE user_iot SET password = ?, passdoor = ?, ten = ? WHERE id = ?';
+
+    db.query(query, [password, passdoor,ten, userId], (err, results) => {
+        if (err) {
+            return res.status(500).json({
+                status: 'error',
+                message: 'Database error',
+                data: null
+            });
+        }
+
+        if (results.affectedRows > 0) {
+            res.status(200).json({
+                status: 'success',
+                message: 'Profile updated successfully',
+                data: null
+            });
+        } else {
+            res.status(404).json({
+                status: 'fail',
+                message: 'User not found',
+                data: null
+            });
+        }
+    });
+}
 
 }
 

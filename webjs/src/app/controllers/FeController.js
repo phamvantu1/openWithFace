@@ -22,5 +22,12 @@ class FeController {
     card(reg, res) {
         res.render('card.ejs');
     }
+    users(reg, res){
+        res.render('users.ejs');
+    }
+
+    profile(reg, res){
+        res.render('profile.ejs');
+    }
 }
 module.exports = new FeController();
