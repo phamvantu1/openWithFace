@@ -1,0 +1,503 @@
+{
+	"info": {
+		"_postman_id": "9444d894-3259-4c9c-9692-b8fef8502be9",
+		"name": "iot Copy",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "31637366"
+	},
+	"item": [
+		{
+			"name": "js",
+			"item": [
+				{
+					"name": "home",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://{{root_domain}}/api",
+							"protocol": "http",
+							"host": [
+								"{{root_domain}}"
+							],
+							"path": [
+								"api"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "create-card",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySUQiOjIsInVzZXJuYW1lIjoiIiwicm9sZSI6InVzZXIiLCJpYXQiOjE3MzQzMTgwMzAsImV4cCI6MTczNDMyMTYzMH0.hfhHxyQC-HfD95m543m9fLNFqNHZ7QySlvNaOMNshsk",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"ten\":\"the2\",\r\n    \"id_the\": \"asdasd\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{root_domain}}/api/create-card",
+							"protocol": "http",
+							"host": [
+								"{{root_domain}}"
+							],
+							"path": [
+								"api",
+								"create-card"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"trungisdead\",\r\n    \"password\": \"12345678\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{root_domain}}/api/login",
+							"protocol": "http",
+							"host": [
+								"{{root_domain}}"
+							],
+							"path": [
+								"api",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update card",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"ten\": \"ten da sua the 2\",\r\n    \"id_the\" :\"21 asdfasd\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{root_domain}}/api/update-card/26",
+							"protocol": "http",
+							"host": [
+								"{{root_domain}}"
+							],
+							"path": [
+								"api",
+								"update-card",
+								"26"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete card",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://{{root_domain}}/api/delete-card/4",
+							"protocol": "http",
+							"host": [
+								"{{root_domain}}"
+							],
+							"path": [
+								"api",
+								"delete-card",
+								"4"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update passdoor",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySUQiOjEsInVzZXJuYW1lIjoiTmd1eeG7hW4gVsSDbiBBIiwicm9sZSI6InVzZXIiLCJpYXQiOjE3MzMwNDk1MTQsImV4cCI6MTczMzA1MzExNH0.ED7ERnoG6B77K-dLqhVRs74eCHVHQ15K06zFaB2VKLA",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"currentPassword\": \"12345678\",\r\n    \"newPassword\": \"12\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{root_domain}}/api/update-password",
+							"protocol": "http",
+							"host": [
+								"{{root_domain}}"
+							],
+							"path": [
+								"api",
+								"update-password"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "log access",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySUQiOjEsInVzZXJuYW1lIjoiTmd1eeG7hW4gVsSDbiBBIiwicm9sZSI6InVzZXIiLCJpYXQiOjE3MzQyNTM3NTMsImV4cCI6MTczNDI1NzM1M30.pdo1odvuyPx1Lr-36bN7oxybh9XGvp9s2bm871D-7Q4",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"userID\" : \"123\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{root_domain}}/api/log_access",
+							"protocol": "http",
+							"host": [
+								"{{root_domain}}"
+							],
+							"path": [
+								"api",
+								"log_access"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get users",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySUQiOjEsInVzZXJuYW1lIjoiTmd1eeG7hW4gVsSDbiBBIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzM0MjU0NTQ0LCJleHAiOjE3MzQyNTgxNDR9.0uqJfss4WlYclbyY1sV8ozrWi2bhsq5rI-xkoCas454",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://{{root_domain}}/api/get-all-users",
+							"protocol": "http",
+							"host": [
+								"{{root_domain}}"
+							],
+							"path": [
+								"api",
+								"get-all-users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get cards",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySUQiOjEsInVzZXJuYW1lIjoiTmd1eeG7hW4gVsSDbiBBIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzM0MjU0NTQ0LCJleHAiOjE3MzQyNTgxNDR9.0uqJfss4WlYclbyY1sV8ozrWi2bhsq5rI-xkoCas454",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://{{root_domain}}/api/get-all-cards",
+							"protocol": "http",
+							"host": [
+								"{{root_domain}}"
+							],
+							"path": [
+								"api",
+								"get-all-cards"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "register",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"username\": \"trungisdead1\",\r\n    \"password\": \"12345678\",\r\n    \"passdoor\": \"123\",\r\n    \"ten\": \"trung so 2\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{root_domain}}/api/register",
+							"protocol": "http",
+							"host": [
+								"{{root_domain}}"
+							],
+							"path": [
+								"api",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get all log",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:3000/api/get-all-logs",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"get-all-logs"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get card by id",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://{{root_domain}}/api/getcardById/26",
+							"protocol": "http",
+							"host": [
+								"{{root_domain}}"
+							],
+							"path": [
+								"api",
+								"getcardById",
+								"26"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get username",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://{{root_domain}}/api/get-all-cards",
+							"protocol": "http",
+							"host": [
+								"{{root_domain}}"
+							],
+							"path": [
+								"api",
+								"get-all-cards"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "python",
+			"item": [
+				{
+					"name": "check pass",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"keyword\": \"12\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{root_python}}/check_pass",
+							"protocol": "http",
+							"host": [
+								"{{root_python}}"
+							],
+							"path": [
+								"check_pass"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get image capture",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://127.0.0.1:5000/get-image",
+							"protocol": "http",
+							"host": [
+								"127",
+								"0",
+								"0",
+								"1"
+							],
+							"port": "5000",
+							"path": [
+								"get-image"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "upload image",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": "/C:/Users/hoang/Pictures/Screenshots/Screenshot (4).png"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://{{root_python}}/upload",
+							"protocol": "http",
+							"host": [
+								"{{root_python}}"
+							],
+							"path": [
+								"upload"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "opendoor",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5000/open-door",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"open-door"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "root_domain",
+			"value": "localhost:3000"
+		},
+		{
+			"key": "root_python",
+			"value": "localhost:5000",
+			"type": "string"
+		}
+	]
+}
