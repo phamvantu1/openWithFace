@@ -3,177 +3,191 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Image Upload and Management</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        /* Custom styles */
-        body {
-            background-color: #f8f9fa;
-        }
+    <title>IoT Card System</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="login-container">
+        <h2>User Login</h2>
+        <form id="login-form">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" required>
 
- .header-section {
-    background-image: linear-gradient(to right, #6a11cb, #2575fc);
-    color: white;
-    padding: 1rem 0; /* Giảm padding hơn */
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required>
+
+            <button type="submit">Login</button>
+        </form>
+        <p id="login-message"></p>
+    </div>
+
+    <div id="dashboard-container" style="display: none;">
+        <h2>Welcome to IoT System</h2>
+        <button id="logout-btn">Logout</button>
+
+        <div id="card-actions">
+            <h3>Manage Cards</h3>
+            <button id="create-card-btn">Create New Card</button>
+            <button id="update-card-btn">Update Card</button>
+            <button id="delete-card-btn">Delete Card</button>
+        </div>
+
+        <div id="password-change">
+            <h3>Change Password</h3>
+            <form id="password-change-form">
+                <label for="current-password">Current Password</label>
+                <input type="password" id="current-password" name="currentPassword" required>
+
+                <label for="new-password">New Password</label>
+                <input type="password" id="new-password" name="newPassword" required>
+
+                <button type="submit">Change Password</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- <script src="scripts.js"></script> -->
+</body>
+</html>
+<style>
+    body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+}
+
+#login-container, #dashboard-container {
+    max-width: 400px;
+    margin: 50px auto;
+    padding: 20px;
+    background-color: white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
     text-align: center;
 }
 
-.header-section h1 {
-    font-size: 1.8rem; /* Giảm kích thước chữ */
-    font-weight: bold;
-    margin-bottom: 0.2rem; /* Giảm thêm margin */
+form label {
+    display: block;
+    margin: 10px 0 5px;
 }
-        .card {
-            border: none;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+
+form input {
+    width: 100%;
+    padding: 8px;
+    margin: 5px 0 15px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+button {
+    width: 100%;
+    padding: 10px;
+    background-color: #5cb85c;
+    border: none;
+    color: white;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #4cae4c;
+}
+
+#card-actions button {
+    margin: 10px 0;
+    background-color: #0275d8;
+}
+
+#card-actions button:hover {
+    background-color: #025aa5;
+}
+
+#login-message {
+    color: red;
+    text-align: center;
+}
+
+</style>
+<script>
+    const API_BASE_URL = 'http://localhost:3000';  // Adjust this based on your backend URL
+let authToken = '';
+
+// User login API request
+document.getElementById('login-form').addEventListener('submit', async (e) => {
+    // e.preventDefault();
+
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+
+    const response = await fetch(`${API_BASE_URL}/login`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password }),
+    });
+    const data = await response.json();
+
+    if (data.status === 'success') {
+        authToken = data.data.token;
+        localStorage.setItem('authToken', authToken);
+        showDashboard();
+    } else {
+        document.getElementById('login-message').innerText = data.message;
+    }
+});
+
+// Show dashboard after successful login
+function showDashboard() {
+    document.getElementById('login-container').style.display = 'none';
+    document.getElementById('dashboard-container').style.display = 'block';
+
+    const token = localStorage.getItem('authToken');
+    if (token) {
+        fetchCards();
+    }
+}
+
+// Logout
+document.getElementById('logout-btn').addEventListener('click', () => {
+    localStorage.removeItem('authToken');
+    authToken = '';
+    window.location.reload();
+});
+
+// Fetch all cards (admin only)
+async function fetchCards() {
+    const response = await fetch(`${API_BASE_URL}/cards`, {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${authToken}`,
         }
+    });
+    const data = await response.json();
+    console.log(data);  // Handle the data
+}
 
-        .image-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            justify-content: center;
-            margin-top: 2rem;
-        }
+// Change Password
+document.getElementById('password-change-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
 
-        .image-item {
-            text-align: center;
-        }
+    const currentPassword = document.getElementById('current-password').value;
+    const newPassword = document.getElementById('new-password').value;
 
-        .image-item img {
-            max-width: 150px;
-            max-height: 150px;
-            border-radius: 10px;
-            transition: transform 0.3s ease;
-        }
+    const response = await fetch(`${API_BASE_URL}/update-password`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`,
+        },
+        body: JSON.stringify({ currentPassword, newPassword }),
+    });
+    const data = await response.json();
+    alert(data.message);
+});
 
-        .image-item img:hover {
-            transform: scale(1.05);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-        }
-    </style>
-</head>
-<body>
+// Other Card management functions (Create, Update, Delete) will be similar to this
 
-    <header class="header-section">
-        <h1>Quản lý hình ảnh</h1>
-    </header>
-
-    <main class="container my-5">
-        <div class="row">
-            <div class="col-md-6 mb-4">
-                <div class="card">
-                    <div class="card-body">
-                        <h3 class="card-title text-center mb-3">Tải ảnh </h3>
-                        <form id="uploadForm" enctype="multipart/form-data" class="d-flex flex-column align-items-center gap-3">
-                            <input type="file" id="fileInput" name="file" class="form-control" style="max-width: 300px;">
-                            <button type="button" onclick="uploadImage()" class="btn btn-primary">Upload</button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-6 mb-4">
-                <div class="card">
-                    <div class="card-body">
-                        <h3 class="card-title text-center mb-3">Xóa ảnh</h3>
-                        <form id="deleteForm" class="d-flex flex-column align-items-center gap-3">
-                            <select id="filenameSelect" name="filename" class="form-select" style="max-width: 300px;">
-                                <option value="">Select an image to delete</option>
-                            </select>
-                            <button type="button" onclick="deleteImage()" class="btn btn-danger">Delete</button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <h3 class="text-center mb-4">Thư viện hình ảnh</h3>
-        <div id="imageList" class="image-container"></div>
-    </main>
-
-    <script>
-        function uploadImage() {
-            const formData = new FormData();
-            const fileInput = document.getElementById('fileInput');
-            formData.append('file', fileInput.files[0]);
-
-            fetch('http://localhost:5000/upload', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert('File uploaded successfully');
-                    populateImageList();
-                } else {
-                    alert('File upload failed');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
-        }
-
-        function deleteImage() {
-            const filename = document.getElementById('filenameSelect').value;
-
-            fetch('http://localhost:5000/delete', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ filename: filename })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert('File deleted successfully');
-                    populateImageList();
-                } else {
-                    alert('File deletion failed: ' + data.error);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
-        }
-
-        function populateImageList() {
-            fetch('http://localhost:5000/list')
-            .then(response => response.json())
-            .then(data => {
-                const filenameSelect = document.getElementById('filenameSelect');
-                const imageList = document.getElementById('imageList');
-                filenameSelect.innerHTML = '<option value="">Select an image to delete</option>';
-                imageList.innerHTML = '';
-                data.files.forEach(file => {
-                    const option = document.createElement('option');
-                    option.value = file;
-                    option.textContent = file;
-                    filenameSelect.appendChild(option);
-
-                    const div = document.createElement('div');
-                    div.className = 'image-item';
-                    const img = document.createElement('img');
-                    img.src = `http://localhost:5000/images/${file}`;
-                    const p = document.createElement('p');
-                    p.textContent = file;
-                    div.appendChild(img);
-                    div.appendChild(p);
-                    imageList.appendChild(div);
-                });
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
-        }
-
-        // Populate the image list when the page loads
-        window.onload = populateImageList;
-    </script>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+</script>

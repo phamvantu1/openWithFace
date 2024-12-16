@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <style>
+        /* Inline CSS */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        h1 {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        table {
+            width: 80%;
+            margin: 30px auto;
+            border-collapse: collapse;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: center;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        td img {
+            max-width: 100px;
+            height: auto;
+            border-radius: 5px;
+        }
+
+        .error {
+            color: red;
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <header style="background-color: #4CAF50; padding: 10px 0; text-align: center;">
+        <nav>
+            <a href="/" style="margin: 0 15px; color: white; text-decoration: none;">Home</a>
+            <a href="/dashboard" style="margin: 0 15px; color: white; text-decoration: none;">Dashboard</a>
+            <a href="/profile" style="margin: 0 15px; color: white; text-decoration: none;">Profile</a>
+            <a href="/logout" style="margin: 0 15px; color: white; text-decoration: none;">Logout</a>
+        </nav>
+    </header>
+    <h1>Dashboard</h1>
+    <h2>Logs</h2>
+    <table id="logTable">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Card Number</th>
+                <th>Action Type</th>
+                <th>Status</th>
+                <th>Time</th>
+                <th>Image</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Logs will be inserted here -->
+        </tbody>
+    </table>
+
+    <div class="error" id="errorMessage" style="display: none;"></div>
+
+    <script>
+        // Inline JS
+        document.addEventListener('DOMContentLoaded', function () {
+            // Fetch logs from the API
+            fetch('/api/get-all-logs')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        const logs = data.data;
+                        const tableBody = document.querySelector('#logTable tbody');
+
+                        // Populate table rows
+                        logs.forEach(log => {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td>${log.id}</td>
+                                <td>${log.card_number}</td>
+                                <td>${log.action_type}</td>
+                                <td>${log.status}</td>
+                                <td>${new Date(log.timestamp).getHours().toString().padStart(2, '0')}:${new Date(log.timestamp).getMinutes().toString().padStart(2, '0')} ${new Date(log.timestamp).getDate().toString().padStart(2, '0')}-${(new Date(log.timestamp).getMonth() + 1).toString().padStart(2, '0')}-${new Date(log.timestamp).getFullYear()}</td>
+
+                                <td><img src="${log.image}" alt="Log Image"></td>
+                            `;
+                            tableBody.appendChild(row);
+                        });
+                    } else {
+                        // Show error message if API fails
+                        const errorMessage = document.getElementById('errorMessage');
+                        errorMessage.textContent = 'Failed to fetch logs. Please try again later.';
+                        errorMessage.style.display = 'block';
+                    }
+                })
+                .catch(function (error) {
+                    console.error('Error fetching logs:', error);
+                    const errorMessage = document.getElementById('errorMessage');
+                    errorMessage.textContent = 'An error occurred while fetching logs.';
+                    errorMessage.style.display = 'block';
+                });
+        });
+    </script>
+</body>
+</html>

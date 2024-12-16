@@ -21,7 +21,7 @@ db_config = {
 conn = mysql.connector.connect(**db_config)
 cursor = conn.cursor()
 
-path = './Python/ImageAttendance'
+path = './ImageAttendance'
 images = []
 classNames = []
 stime = 0

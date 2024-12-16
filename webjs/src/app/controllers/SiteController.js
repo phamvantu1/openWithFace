@@ -45,14 +45,8 @@ class SiteController {
         });
     }
 
-    // Middleware protected home route
-    home(req, res) {
-        res.json({
-            status: 'success',
-            message: 'Welcome',
-            data: null
-        });
-    }
+
+
 
     // Update password (authentication required)
     async updatePass(req, res) {
@@ -96,10 +90,12 @@ class SiteController {
     }
 
     // Log access (authentication required)
+
     logAccess = async (req, res) => {
         const { userID, time } = req.body;
         const imageUrl = "http://127.0.0.1:5000/get-image";
-        const imageFolder = path.join(__dirname, 'images');
+        // const imageFolder = path.join(__dirname, 'public', 'images');
+        const imageFolder = path.join(__dirname, '..', '..', 'public', 'images'); // Đổi thành thư mục public/images
 
         // Tạo thư mục nếu chưa tồn tại
         if (!fs.existsSync(imageFolder)) {
@@ -129,7 +125,7 @@ class SiteController {
                 throw new Error(`Error downloading image: ${error.message}`);
             }
         };
-        console.log("ds");
+
         try {
             const imagePath = await downloadImage(); // Chờ tải ảnh xong
             console.log('Image saved:', imagePath);
@@ -151,7 +147,7 @@ class SiteController {
                     time,
                     date: new Date().toLocaleDateString(),
                     log: doorStatus === 1 ? "Success" : "Failure",
-                    image: imagePath,
+                    image: `http://localhost:3000/images/${path.basename(imagePath)}`,  // Đường dẫn từ public
                 };
 
                 socket.getIO().emit('doorStatus', logEntry);
@@ -163,7 +159,7 @@ class SiteController {
                         'INSERT INTO action (card_number, action_type, status, user_id, image) VALUES (?, ?, ?, ?, ?)';
                     db.query(
                         actionQuery,
-                        [results[0].ten, 'card', 'SUCCESS', user_id, imagePath],
+                        [results[0].ten, 'card', 'SUCCESS', user_id, logEntry.image],
                         (actionErr) => {
                             if (actionErr) console.error('Error inserting action:', actionErr.message);
                         }
@@ -184,6 +180,25 @@ class SiteController {
             });
         }
     };
+    getAllActions = (req, res) => {
+        // Truy vấn tất cả hành động, sắp xếp theo id giảm dần (từ mới nhất)
+        db.query('SELECT * FROM action ORDER BY id DESC', (err, actions) => {
+            if (err) {
+                return res.status(500).json({
+                    status: 'error',
+                    message: 'Error fetching actions',
+                    data: null,
+                });
+            }
+
+            res.status(200).json({
+                status: 'success',
+                message: 'Actions retrieved successfully',
+                data: actions,  // Trả về danh sách các hành động
+            });
+        });
+    };
+
 
 
     // Check password (authentication required)
@@ -268,6 +283,33 @@ class SiteController {
             }
         });
     }
+    getCardById(req, res)  {
+        const { cardId } = req.params;
+        console.log(cardId)
+
+        // Truy vấn cơ sở dữ liệu để lấy thông tin thẻ
+        const query = 'SELECT id, ten, id_the FROM card_lock WHERE id = ?';
+        db.query(query, [cardId], (err, results) => {
+            if (err) return res.status(500).json({
+                status: 'error',
+                message: 'Database error',
+                data: null
+            });
+            if (results.length > 0) {
+                res.status(200).json({
+                    status: 'success',
+                    message: 'Card fetched successfully',
+                    data: results[0] // trả về thông tin của thẻ
+                });
+            } else {
+                res.status(404).json({
+                    status: 'fail',
+                    message: 'Card not found',
+                    data: null
+                });
+            }
+        });
+    };
 
     // Delete card lock (admin)
     deleteCard(req, res) {
@@ -427,6 +469,36 @@ async register(req, res) {
         });
     });
 }
+getUserById (req, res)  {
+    const userId = req.params.userId;
+    console.log(userId)
+    // Query lấy tên người dùng dựa trên id
+    const query = 'SELECT ten FROM user_iot WHERE id = ?';
+
+    db.query(query, [userId], (err, results) => {
+        if (err) {
+            return res.status(500).json({
+                status: 'error',
+                message: 'Database error',
+                data: null
+            });
+        }
+
+        if (results.length > 0) {
+            res.status(200).json({
+                status: 'success',
+                message: 'Username retrieved successfully',
+                data: results[0].ten
+            });
+        } else {
+            res.status(404).json({
+                status: 'fail',
+                message: 'User not found',
+                data: null
+            });
+        }
+    });
+};
 
 }
 

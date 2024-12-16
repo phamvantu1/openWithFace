@@ -14,6 +14,7 @@ from voiceController import recognize_speech
 
 app = Flask(__name__)
 CORS(app)  # Cho phép CORS cho mọi nguồn
+PUBLIC_IMAGES_FOLDER = os.path.join(os.getcwd(), 'public', 'images')
 UPLOAD_FOLDER = './ImageAttendance'
 CAPTURED_IMAGES_FOLDER = './CapturedImages'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -25,6 +26,14 @@ SECRET_KEY = pyotp.random_base32()
 @app.route('/')
 def index():
     return render_template('main.html')
+
+@app.route('/getimages/<filename>', methods=['GET'])
+def get_image344(filename):
+    # Trả ảnh từ thư mục public/images
+    try:
+        return send_from_directory(PUBLIC_IMAGES_FOLDER, filename)
+    except FileNotFoundError:
+        return jsonify({"error": "File not found"}), 404
 
 @app.route('/get-image')
 def get_image12321():
@@ -77,7 +86,7 @@ def get_image(filename):
 
 @app.route('/open-door', methods=['POST'])
 def open_door():
-    send_command("open")
+    # send_command("open")
     addAttendanceTimeV2("openByAPP")
     return jsonify({'success': 'Door opened successfully'}), 200
 
