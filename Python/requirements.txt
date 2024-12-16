@@ -1,0 +1,12 @@
+mysql-connector-python
+opencv-python
+face_recognition
+numpy
+Pillow
+requests==2.31.0
+mediapipe
+fer
+Flask==2.2.3
+Flask-Cors==3.1.1
+pyotp==2.8.0
+SpeechRecognition==3.8.1
