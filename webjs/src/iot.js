@@ -46,6 +46,8 @@ app.set('views', path.join(__dirname, 'resources', 'views'));
 // Gọi các route
 route(app);
 
+
+
 // Khởi động server
 server.listen(port, () => {
     console.log(`Server is running at http://localhost:${port}`);
