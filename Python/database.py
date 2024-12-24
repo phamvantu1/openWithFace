@@ -19,7 +19,7 @@ if not os.path.exists(image_folder):
 def addAttendanceTime(name):
 
     query = "INSERT INTO action (card_number, action_type, status, timestamp, image) VALUES (%s, %s, %s, %s, %s)"
-    image_url = "http://127.0.0.1:5000/get-image"
+    image_url = "http://192.168.201.105:5000/get-image"
     path_i = downloadImageAndSave(image_url)
     values = (name,"faceID","success", datetime.now(), path_i)
     cursor.execute(query, values)
@@ -28,7 +28,7 @@ def addAttendanceTime(name):
 
 def addAttendanceTimeV2(name):
     query = "INSERT INTO action (card_number, action_type, status, timestamp, image) VALUES (%s, %s, %s, %s, %s)"
-    image_url = "http://127.0.0.1:5000/get-image"
+    image_url = "http://192.168.201.105:5000/get-image"
     path_i = downloadImageAndSave(image_url)
     values = (name,"web","success", datetime.now(), path_i)
     cursor.execute(query, values)
@@ -59,7 +59,7 @@ def downloadImageAndSave(image_url):
                 for chunk in response.iter_content(1024):
                     f.write(chunk)
             print(f"Image saved at {image_path}")
-            image_url = f"http://127.0.0.1:5000/getimages/{image_filename}"
+            image_url = f"http://192.168.201.105:5000/getimages/{image_filename}"
             return image_url
             # return image_path
 

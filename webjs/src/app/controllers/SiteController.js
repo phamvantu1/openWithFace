@@ -6,6 +6,8 @@ const { checkAuth, checkRole } = require('../../middlewares/authMiddleware'); //
 const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
+
+const BASE_URL = "http://192.168.201.105:3000"
 class SiteController {
 
     // User login API
@@ -147,7 +149,7 @@ class SiteController {
                     time,
                     date: new Date().toLocaleDateString(),
                     log: doorStatus === 1 ? "Success" : "Failure",
-                    image: `http://localhost:3000/images/${path.basename(imagePath)}`,  // Đường dẫn từ public
+                    image: `${BASE_URL}/images/${path.basename(imagePath)}`
                 };
 
                 socket.getIO().emit('doorStatus', logEntry);
