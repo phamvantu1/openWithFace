@@ -357,7 +357,7 @@ async getAllCards(req, res) {
     // Check if the user has an admin role
     if (req.user.role === 'admin') {
         // Admin can see all cards
-        db.query('SELECT * FROM card_lock', (err, results) => {
+        db.query('SELECT u.ten AS username, c.* FROM card_lock c JOIN user_iot u ON c.user_id = u.id;', (err, results) => {
             if (err) {
                 return res.status(500).json({
                     status: 'error',
