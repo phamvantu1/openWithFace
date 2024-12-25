@@ -6,8 +6,8 @@ const { checkAuth, checkRole } = require('../../middlewares/authMiddleware'); //
 const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
-
-const BASE_URL = "http://192.168.201.105:3000"
+const { root_domain } = require('../../util');
+const BASE_URL = root_domain;
 class SiteController {
 
     // User login API
