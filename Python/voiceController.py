@@ -1,7 +1,7 @@
 from flask import Flask, jsonify
 import speech_recognition as sr
 
-from Python.ESP32 import send_command
+from Python.ESP32 import send_command, send_esp8266
 
 
 # Hàm nhận diện giọng nói và thực hiện hành động
@@ -24,6 +24,10 @@ def recognize_speech():
             print(f" toi da mo cua roi ")
             send_command("open")
             return "Mở cửa"
+        elif "bật đèn" in command.lower():
+            print("Tôi đã bật đèn rồi")
+            send_esp8266("open")
+            return "Bật đèn"
         else:
             return "Lệnh không rõ ràng"
 

@@ -6,7 +6,7 @@ import speech_recognition as sr
 import mysql.connector
 from mysql.connector import Error
 
-from Python.ESP32 import send_command
+from Python.ESP32 import send_command, send_esp8266
 from Python.Send_Email import send_email_with_image
 from Python.database import getAttendanceTime, addAttendanceTime, addAttendanceTimeV2
 from Python.voiceController import recognize_speech
@@ -69,6 +69,11 @@ def open_door():
     send_command("open")
     addAttendanceTimeV2("openByAPP")
     return jsonify({'success': 'Door opened successfully'}), 200
+
+@app.route('/open-light', methods=['POST'])
+def open_light():
+    send_esp8266("open")
+    return jsonify({'success': 'Light opened successfully'}), 200
 
 @app.route('/history', methods=['GET'])
 def get_actions():
@@ -180,6 +185,72 @@ def send_email():
 
     result = send_email_with_image(to_email, subject, body, image_path)
     return jsonify({"message": result})
+
+
+@app.route('/device', methods=['POST'])
+def add_device():
+    data = request.json
+    name = data.get('name')
+    status = data.get('status')
+
+    if not name or not status:
+        return jsonify({'error': 'Name and status are required'}), 400
+
+    conn = mysql.connector.connect(**db_config)
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO device (name, status) VALUES (%s, %s)", (name, status))
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    return jsonify({'message': 'Device added successfully'}), 201
+
+@app.route('/device/<int:id>', methods=['PUT'])
+def update_device(id):
+    data = request.json
+    name = data.get('name')
+    status = data.get('status')
+
+    if not name or not status:
+        return jsonify({'error': 'Name and status are required'}), 400
+
+    conn = mysql.connector.connect(**db_config)
+    cursor = conn.cursor()
+    cursor.execute("UPDATE device SET name = %s, status = %s WHERE id = %s", (name, status, id))
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    return jsonify({'message': 'Device updated successfully'}), 200
+
+@app.route('/device/<int:id>', methods=['DELETE'])
+def delete_device(id):
+    conn = mysql.connector.connect(**db_config)
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM device WHERE id = %s", (id,))
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    return jsonify({'message': 'Device deleted successfully'}), 200
+
+@app.route('/devices', methods=['GET'])
+def get_devices():
+    conn = mysql.connector.connect(**db_config)
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM device")
+    devices = cursor.fetchall()
+    cursor.close()
+    conn.close()
+
+    device_list = []
+    for device in devices:
+        device_list.append({
+            'id': device[0],
+            'name': device[1],
+            'status': device[2]
+        })
+    return jsonify({'devices': device_list}), 200
 
 if __name__ == '__main__':
     # app.run(port=5000)

@@ -2,10 +2,11 @@ import socket
 import time
 
 # esp32_ip = "192.168.226.153"
-esp32_ip = "192.168.83.153"
+# 192.168.83.153"
+esp32_ip = "192.168.85.153"
 esp32_port = 80
 
-esp8266_ip = "192.168.83.130"
+esp8266_ip = "192.168.85.130"
 esp8266_port = 80
 
 def send_command(command):

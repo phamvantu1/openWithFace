@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Action History</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .header-section {
+            background-image: linear-gradient(to right, #6a11cb, #2575fc);
+            color: white;
+            padding: 1rem 0;
+            text-align: center;
+        }
+
+        .header-section h1 {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+
+        table {
+            margin-top: 20px;
+        }
+
+    </style>
+</head>
+<body>
+    <header class="header-section">
+        <h1>Xem lịch sử</h1>
+    </header>
+
+    <main class="container my-5">
+
+         <!-- Nút quay lại -->
+        <div class="text-start">
+            <button class="btn btn-secondary back-button" onclick="goHome()">Quay lại</button>
+        </div>
+
+        <table class="table table-bordered table-striped text-center">
+            <thead class="table-primary">
+                <tr>
+                    <th>STT</th>
+                    <th>Người thực hiện</th>
+                    <th>Phương thức</th>
+                    <th>Trạng thái</th>
+                    <th>Thời gian</th>
+                </tr>
+            </thead>
+            <tbody id="historyTableBody">
+                <!-- Table rows will be dynamically added here -->
+            </tbody>
+        </table>
+    </main>
+
+    <script>
+
+        function goHome() {
+            window.location.href = 'main.html'; // Đường dẫn tới trang lịch sử
+        }
+        // Fetch data from the /history API and populate the table
+        fetch('http://192.168.85.239:5000/history')
+            .then(response => response.json())
+            .then(data => {
+                const tableBody = document.getElementById('historyTableBody');
+                tableBody.innerHTML = ''; // Clear any existing rows
+
+                data.actions.forEach(action => {
+                    const row = document.createElement('tr');
+
+                    action.forEach(cellData => {
+                        const cell = document.createElement('td');
+                        cell.textContent = cellData;
+                        row.appendChild(cell);
+                    });
+
+                    tableBody.appendChild(row);
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching action history:', error);
+            });
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

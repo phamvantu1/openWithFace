@@ -1,0 +1,8 @@
+
+
+
+chạy app
+
+cd D:\IOT\app_test\ImageManagementApp
+
+npx expo start

@@ -1,36 +1,40 @@
 import cv2
+from deepface import DeepFace
 
-import tensorflow as tf
+# Mở camera
+cap = cv2.VideoCapture(0)
 
-print(cv2.__version__)
+if not cap.isOpened():
+    print("Không thể mở camera. Hãy kiểm tra kết nối.")
+    exit()
 
+print("Nhấn 'q' để thoát.")
 
-print(tf.__version__)
+while True:
+    ret, frame = cap.read()
+    if not ret:
+        print("Không thể đọc khung hình từ camera.")
+        break
 
+    try:
+        # Phân tích cảm xúc từ khung hình
+        analysis = DeepFace.analyze(frame, actions=['emotion'], enforce_detection=False)
+        dominant_emotion = analysis[0]['dominant_emotion']
 
-# img_path = "D:\IOT\openWithFace\openWithFace\Python\ImageAttendance\smile.jpg"
+        # Hiển thị cảm xúc lên khung hình
+        cv2.putText(frame, f"Cảm xúc: {dominant_emotion}", (10, 50),
+                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
 
+    except Exception as e:
+        print(f"Lỗi khi phân tích: {e}")
 
-from fer import FER
-from PIL import Image
-import numpy as np
+    # Hiển thị khung hình
+    cv2.imshow("Nhận diện cảm xúc", frame)
 
-# Đường dẫn đến hình ảnh
-img_path = "D:\IOT\openWithFace\openWithFace\Python\ImageAttendance\smile.jpg"
-# Mở ảnh bằng Pillow
-image = Image.open(img_path)
+    # Nhấn 'q' để thoát
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
 
-# Chuyển ảnh thành mảng numpy
-image_array = np.array(image)
-
-# Khởi tạo công cụ phát hiện cảm xúc
-emotion_detector = FER(mtcnn=True)  # Sử dụng MTCNN để phát hiện khuôn mặt tốt hơn
-
-# Phát hiện cảm xúc
-emotion, score = emotion_detector.top_emotion(image_array)
-
-# Kết quả
-if emotion:
-    print(f"Detected emotion: {emotion} with score: {score}")
-else:
-    print("No face detected or emotion could not be identified.")
+# Giải phóng tài nguyên
+cap.release()
+cv2.destroyAllWindows()
