@@ -101,6 +101,7 @@ def process(img):
     if isHost :
         print("day la host")
         send_command("host")
+        send_esp8266("open")
         isHost = False
 
     cv2.imshow('Webcam', img)
