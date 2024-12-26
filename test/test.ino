@@ -212,6 +212,12 @@ void checkpass(String keyword) {
                 if (cntFailed >= 3){
                   cntFailed = 0;
                   sendEmail();
+                  lcd.clear();
+                  lcd.print("co trom");
+                  digitalWrite(LED, HIGH); // Bật đèn LED khi cửa mở
+                  delay(9000); // Giữ cửa mở trong 5 giây
+                  digitalWrite(LED, LOW); // Tắt đèn LED khi cửa đóng
+
                 }
             }
     } else {
@@ -308,7 +314,16 @@ void checkFacialRecognition() {
                     lcd.clear();
                     lcd.print("HOST bat nhac");
                     digitalWrite(LED, HIGH); // Bật đèn LED khi chu nha
-                    delay(20000); // bat den 20s
+                    delay(10000); // bat den 10s
+                    digitalWrite(LED, LOW); // Tắt đèn LED khi het 10s
+                    lcd.clear();
+                    lcd.print("close door");
+                }
+                    if (command == "den") {
+                    lcd.clear();
+                    lcd.print("bat den");
+                    digitalWrite(LED, HIGH); // Bật đèn LED khi chu nha
+                    delay(5000); // bat den 20s
                     digitalWrite(LED, LOW); // Tắt đèn LED khi het 10s
                     lcd.clear();
                     lcd.print("close door");

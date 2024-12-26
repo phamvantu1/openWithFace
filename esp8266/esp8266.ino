@@ -14,7 +14,7 @@ const char* password = "123456789";  // Thay bằng mật khẩu WiFi của bạ
 
 const float TEMP_THRESHOLD = 30.0;  // Ngưỡng nhiệt độ để bật LED
 const float HUM_THRESHOLD = 70.0;   // Ngưỡng độ ẩm để bật LED
-const int LIGHT_THRESHOLD = 600;    // Ngưỡng ánh sáng để bật đèn LED khi trời tối
+const int LIGHT_THRESHOLD = 1000;    // Ngưỡng ánh sáng để bật đèn LED khi trời tối
 
 DHT dht(DHTPIN, DHTTYPE);
 
@@ -94,7 +94,7 @@ void checkFacialRecognition() {
         if (command == "open") {
             Serial.println("haha xin chao ");
             digitalWrite(LED_NHAC, HIGH);
-            delay(20000); // bat den 20s
+            delay(5000); // bat den 20s
             digitalWrite(LED_NHAC, LOW); 
             // client.println("Open command received!");  // Gửi phản hồi đến client
         } 

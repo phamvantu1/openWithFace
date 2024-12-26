@@ -26,7 +26,8 @@ def recognize_speech():
             return "Mở cửa"
         elif "bật đèn" in command.lower():
             print("Tôi đã bật đèn rồi")
-            send_esp8266("open")
+            # send_esp8266("open")
+            send_command("den")
             return "Bật đèn"
         else:
             return "Lệnh không rõ ràng"

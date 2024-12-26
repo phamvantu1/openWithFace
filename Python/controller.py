@@ -72,7 +72,8 @@ def open_door():
 
 @app.route('/open-light', methods=['POST'])
 def open_light():
-    send_esp8266("open")
+    # send_esp8266("open")
+    send_command("den")
     return jsonify({'success': 'Light opened successfully'}), 200
 
 @app.route('/history', methods=['GET'])
@@ -185,7 +186,7 @@ def send_email():
 
     result = send_email_with_image(to_email, subject, body, image_path)
     # bat canh bao
-    send_esp8266("open")
+    # send_esp8266("open")
     return jsonify({"message": result})
 
 
