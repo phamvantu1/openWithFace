@@ -184,6 +184,8 @@ def send_email():
         return jsonify({"error": "Thiếu dữ liệu. Vui lòng gửi đủ thông tin."}), 400
 
     result = send_email_with_image(to_email, subject, body, image_path)
+    # bat canh bao
+    send_esp8266("open")
     return jsonify({"message": result})
 
 
