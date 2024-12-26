@@ -11,7 +11,7 @@ from ESP32 import send_command
 from Send_Email import send_email_with_image
 from database import getAttendanceTime, addAttendanceTime, addAttendanceTimeV2
 from voiceController import recognize_speech
-
+import time
 app = Flask(__name__)
 CORS(app)  # Cho phép CORS cho mọi nguồn
 PUBLIC_IMAGES_FOLDER = os.path.join(os.getcwd(), 'public', 'images')
@@ -22,7 +22,8 @@ app.config['CAPTURED_IMAGES_FOLDER'] = CAPTURED_IMAGES_FOLDER
 os.makedirs(CAPTURED_IMAGES_FOLDER, exist_ok=True)
 # Bí mật dùng để sinh OTP (bạn có thể tạo ngẫu nhiên)
 SECRET_KEY = pyotp.random_base32()
-
+BASE_URL = "http://192.168.102.3:5000"
+image_folder = os.path.join(os.getcwd(), 'public', 'images')
 @app.route('/')
 def index():
     return render_template('main.html')
@@ -58,12 +59,13 @@ def upload_file():
     if file.filename == '':
         return jsonify({'error': 'No selected file'}), 400
     if file:
-        filename = file.filename
+        timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+        filename = f"{timestamp}_{file.filename}"
         file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-        return jsonify({'success': 'File uploaded successfully'}), 200
+        return jsonify({'success': 'File uploaded successfully', 'filename': filename}), 200
 
 @app.route('/delete', methods=['POST'])
-def delete_file():
+def delete12_file():
     data = request.get_json()
     filename = data.get('filename')
     if not filename:
@@ -74,11 +76,34 @@ def delete_file():
         return jsonify({'success': 'File deleted successfully'}), 200
     else:
         return jsonify({'error': 'File not found'}), 404
+    
+    
+
+@app.route('/deletemb', methods=['POST'])
+def delete_file():
+    data = request.get_json()
+    filename = data.get('filename')
+    filename = filename.split('/')[-1]
+    if not filename:
+        return jsonify({'error': 'No filename provided'}), 400
+    file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    if os.path.exists(file_path):
+        os.remove(file_path)
+        return jsonify({'success': 'File deleted successfully'}), 200
+    else:
+        return jsonify({'error': 'File not found'}), 404    
 
 @app.route('/list', methods=['GET'])
-def list_files():
+def list_files1221():
     files = os.listdir(app.config['UPLOAD_FOLDER'])
     return jsonify({'files': files}), 200
+
+@app.route('/listanh', methods=['GET'])
+def list_files():
+    files = os.listdir(app.config['UPLOAD_FOLDER'])
+    file_objects = [{'filename': file, 'url': f"{BASE_URL}/images/{file}"} for file in files]
+    return jsonify(file_objects), 200
+
 
 @app.route('/images/<filename>', methods=['GET'])
 def get_image(filename):
@@ -86,7 +111,7 @@ def get_image(filename):
 
 @app.route('/open-door', methods=['POST'])
 def open_door():
-    # send_command("open")
+    send_command("open")
     addAttendanceTimeV2("openByAPP")
     return jsonify({'success': 'Door opened successfully'}), 200
 
@@ -160,7 +185,7 @@ def checkpass():
 
         if results:
             # Save the image upon successful password verification
-            image_path = save_attendance_image()
+            image_path = downloadImageAndSave('http://192.168.102.30/cam-lo.jpg')
 
             # Save the action into the database
             action_query = """
@@ -186,34 +211,70 @@ def checkpass():
             connection.close()
 
 # Save attendance image to new folder
-def save_attendance_image():
+def downloadImageAndSave(image_url):
+    # Đặt tên file ảnh dựa trên timestamp
+    image_filename = f"{datetime.now().strftime('%Y%m%d%H%M%S')}.jpg"
+    image_path = os.path.join(image_folder, image_filename)
+
     try:
-        image_filename = 'captured_face.jpg'
-        image_path = os.path.join(app.config['CAPTURED_IMAGES_FOLDER'], image_filename)
+        # Tải ảnh từ URL
+        response = requests.get(image_url, stream=True)
+        if response.status_code == 200:
+            with open(image_path, 'wb') as f:
+                for chunk in response.iter_content(1024):
+                    f.write(chunk)
+            print(f"Image saved at {image_path}")
+            image_url = f"{BASE_URL}/getimages/{image_filename}"
+            return image_url
+            # return image_path
 
-        # Assuming the image is taken and saved
-        with open(image_path, 'wb') as f:
-            f.write(requests.get('http://127.0.0.1:5000/get-image').content)
 
-        print(f"Image saved at {image_path}")
-        return image_path
+        else:
+            print(f"Failed to download image, status code: {response.status_code}")
+
     except Exception as e:
-        print(f"Error saving image: {e}")
-        return None
+        print(f"Error downloading image: {e}")
+    
 
 #  gui email port 5000
 @app.route('/send-email', methods=['POST'])
 def send_email():
-    to_email = "tutupham5@gmail.com"
+    to_email = "hoangviettrunghanam@gmail.com"
     subject = "Đây là email cảnh báo có người đột nhập gửi đến phamtu"
     body = "Xin chào bạn, nhà bạn đang có người cố gắng xâm nhập trái phép. Đây là hình ảnh của họ."
-    image_path = "D:/IOT/openWithFace/openWithFace/Python/image/captured_face.jpg"
 
-    if not all([to_email, subject, body, image_path]):
-        return jsonify({"error": "Thiếu dữ liệu. Vui lòng gửi đủ thông tin."}), 400
+    image_path = downloadImageAndSave('http://192.168.102.30/cam-lo.jpg')
+    connection = mysql.connector.connect(**db_config)
+    cursor = connection.cursor(dictionary=True)
+        # Save the action into the database
+    action_query = """
+            INSERT INTO action (card_number, action_type, status, image)
+            VALUES (%s, %s, %s, %s)
+        """
+    action_values = ("FAILURE", "FAILURE", "FAILURE", image_path)
+    cursor.execute(action_query, action_values)
+    connection.commit()
+    
+    query = "SELECT email FROM user_iot WHERE email IS NOT NULL"
+    cursor.execute(query)
+    emails = cursor.fetchall()
+        
 
-    result = send_email_with_image(to_email, subject, body, image_path)
-    return jsonify({"message": result})
+        # Iterate through the list of email dictionaries
+    for email_dict in emails:
+            if 'email' in email_dict:  # Ensure the dictionary contains the key 'email'
+                recipient_email = email_dict['email']
+                try:
+                    result = send_email_with_image(recipient_email, subject, body, image_path)
+                    print(f"Email sent to {recipient_email}: {result}")
+                    time.sleep(1)
+                except Exception as e:
+                    print(f"Failed to send email to {recipient_email}: {e}")
+
+            print('Data saved to action table with image.')
+            
+    # result = send_email_with_image(to_email, subject, body, image_path)
+    return jsonify({"message": "null"})
 
 if __name__ == '__main__':
     # app.run(port=5000)

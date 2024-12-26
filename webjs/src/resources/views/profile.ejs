@@ -38,6 +38,12 @@
             <label for="passdoor">Passdoor:</label>
             <input type="password" id="passdoor" />
 
+            <label for="email">Email:</label>
+            <input type="email" id="email" />
+
+            <label for="phone_number">Phone number:</label>
+            <input type="text" id="phone_number" />
+
             <button type="button" id="updateButton" onclick="updateProfile()">Update Profile</button>
         </form>
     </div>
@@ -68,6 +74,8 @@
                     document.getElementById('ten').value = user.ten;
                     document.getElementById('password').value = user.password;
                     document.getElementById('passdoor').value = user.passdoor;
+                    document.getElementById('email').value = user.email;
+                    document.getElementById('phone_number').value = user.phone_number;
                 } else {
                     alert(data.message);
                 }
@@ -81,12 +89,14 @@
             const password = document.getElementById('password').value;
             const passdoor = document.getElementById('passdoor').value;
             const ten = document.getElementById('ten').value;
+            const phone_number = document.getElementById('phone_number').value;
+            const email = document.getElementById('email').value;
 
             try {
                 const response = await fetch('/api/update-profile', {
                     method: 'PUT',
                     headers: getHeaders(),
-                    body: JSON.stringify({ password, passdoor, ten })
+                    body: JSON.stringify({ password, passdoor, ten, email, phone_number }),
                 });
 
                 const data = await response.json();

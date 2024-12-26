@@ -8,7 +8,7 @@ db_config = {
     'host': 'localhost',
     'database': 'smartdoor',
 }
-BASE_URL = "http://10.1.1.153:5000"
+BASE_URL = "http://192.168.102.3:5000"
 conn = mysql.connector.connect(**db_config)
 cursor = conn.cursor()
 # Thư mục lưu ảnh
@@ -29,7 +29,7 @@ def addAttendanceTime(name):
 def addAttendanceTimeV2(name):
     query = "INSERT INTO action (card_number, action_type, status, timestamp, image) VALUES (%s, %s, %s, %s, %s)"
     image_url =  BASE_URL + "/get-image"
-    path_i = downloadImageAndSave(image_url)
+    path_i = downloadImageAndSave('http://192.168.102.30/cam-lo.jpg')
     values = (name,"web","success", datetime.now(), path_i)
     cursor.execute(query, values)
     conn.commit()
@@ -69,3 +69,4 @@ def downloadImageAndSave(image_url):
 
     except Exception as e:
         print(f"Error downloading image: {e}")
+    

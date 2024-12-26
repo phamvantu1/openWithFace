@@ -53,13 +53,12 @@
 </head>
 <body>
     <header style="background-color: #4CAF50; padding: 10px 0; text-align: center;">
-        <nav>
+        <nav id="main-nav">
             <a href="/" style="margin: 0 15px; color: white; text-decoration: none;">Home</a>
             <a href="/dashboard" style="margin: 0 15px; color: white; text-decoration: none;">Dashboard</a>
             <a href="/card" style="margin: 0 15px; color: white; text-decoration: none;">Card</a>
             <!-- <a href="/users" style="margin: 0 15px; color: white; text-decoration: none;">Users</a> -->
             <a href="/profile" style="margin: 0 15px; color: white; text-decoration: none;">Profile</a>
-            <a href="/logout" style="margin: 0 15px; color: white; text-decoration: none;">Logout</a>
         </nav>
     </header>
     <h1>Dashboard</h1>
@@ -121,6 +120,30 @@
                     errorMessage.style.display = 'block';
                 });
         });
+
+        const isAdmin = localStorage.getItem('isAdmin') === 'true';
+            if (isAdmin) {
+                const usersLink = document.createElement('a');
+                usersLink.href = '/users';
+                usersLink.style.margin = '0 15px';
+                usersLink.style.color = 'white';
+                usersLink.style.textDecoration = 'none';
+                usersLink.textContent = 'Users';
+
+                // Thêm liên kết vào phần tử nav
+                const nav = document.getElementById('main-nav');
+                nav.appendChild(usersLink);
+
+                const usersLink1 = document.createElement('a');
+                usersLink.href = 'http://192.168.102.3:5000';
+                usersLink.style.margin = '0 15px';
+                usersLink.style.color = 'white';
+                usersLink.style.textDecoration = 'none';
+                usersLink.textContent = 'Images';
+                nav.appendChild(usersLink1);
+
+            }
     </script>
+  
 </body>
 </html>

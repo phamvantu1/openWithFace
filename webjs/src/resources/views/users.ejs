@@ -1,25 +1,65 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Management</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        table, th, td { border: 1px solid #ddd; padding: 8px; }
-        th { background-color: #f2f2f2; }
-        .button { padding: 10px; background-color: #4CAF50; color: white; border: none; cursor: pointer; }
-        .button.delete { background-color: #f44336; }
-        .button.edit { background-color: #ff9800; }
-        .form-container { margin-top: 20px; }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        table,
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        .button {
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        .button.delete {
+            background-color: #f44336;
+        }
+
+        .button.edit {
+            background-color: #ff9800;
+        }
+
+        .form-container {
+            margin-top: 20px;
+        }
+
         .modal {
             display: none;
             position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             background-color: rgba(0, 0, 0, 0.5);
-            justify-content: center; align-items: center;
+            justify-content: center;
+            align-items: center;
         }
+
         .modal-content {
             background: white;
             padding: 20px;
@@ -28,7 +68,122 @@
             width: 300px;
         }
     </style>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+    
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+    
+        table,
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+    
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+    
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+    
+        tr:hover {
+            background-color: #ddd;
+        }
+    
+        .button {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+    
+        .button.delete {
+            background-color: #f44336;
+            color: white;
+        }
+    
+        .button.edit {
+            background-color: #ff9800;
+            color: white;
+        }
+    
+        .button.show-pass {
+            background-color: #2196F3;
+            color: white;
+            border-radius: 20px;
+            padding: 8px 16px;
+            transition: background-color 0.3s;
+        }
+    
+        .button.show-pass:hover {
+            background-color: #0b7dda;
+        }
+    
+        .form-container {
+            margin-top: 20px;
+        }
+    
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+        }
+    
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            width: 300px;
+            text-align: center;
+        }
+    
+        input {
+            width: 90%;
+            padding: 8px;
+            margin: 8px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+    
+        button[type="submit"] {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    
+        button[type="submit"]:hover {
+            background-color: #45a049;
+        }
+    </style>
+
 </head>
+
 <body>
     <header style="background-color: #4CAF50; padding: 10px 0; text-align: center;">
         <nav>
@@ -82,9 +237,6 @@
         </div>
     </div>
 
-
-
-
     <script>
         const token = localStorage.getItem('authToken');
 
@@ -127,15 +279,12 @@
                         <button class="button" onclick="toggleVisibility('passdoor-${user.id}')">Show</button>
                     </td>
                     <td>
-                         <button class="button delete" onclick="deleteUser(${user.id})">Delete</button>
+                        <button class="button delete" onclick="deleteUser('${user.user}')">Delete</button>
                     </td>
                 `;
                 tbody.appendChild(row);
             });
         }
-
-        // Open Edit Modal with user data
-
 
         // Submit form to add user
         document.getElementById('addUserForm').addEventListener('submit', async (e) => {
@@ -155,25 +304,27 @@
             fetchUsers();
         });
 
-
-
         // Delete user
-        async function deleteUser(userId) {
+        async function deleteUser(username) {
             if (confirm('Are you sure you want to delete this user?')) {
-                await fetch(`/api/delete-user/${userId}`, {
-                    method: 'DELETE',
+                await fetch('/api/deleteUser', {
+                    method: 'POST',
                     headers: getHeaders(),
+                    body: JSON.stringify({ username }),
                 });
                 fetchUsers();
             }
         }
+
         function toggleVisibility(elementId) {
             const element = document.getElementById(elementId);
             const isHidden = element.style.display === 'none';
             element.style.display = isHidden ? 'inline' : 'none';
         }
+
         // Fetch users on page load
         fetchUsers();
     </script>
 </body>
+
 </html>

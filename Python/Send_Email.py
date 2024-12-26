@@ -3,6 +3,8 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.image import MIMEImage
 import os
+import requests
+from io import BytesIO
 
 # Thông tin gửi email
 SMTP_SERVER = "smtp.gmail.com"
@@ -22,14 +24,15 @@ def send_email_with_image(to_email, subject, body, image_path):
         msg.attach(MIMEText(body, 'plain'))
 
         # Đính kèm hình ảnh
-        if os.path.exists(image_path):  # Kiểm tra hình ảnh có tồn tại không
-            with open(image_path, 'rb') as img:
-                mime_image = MIMEImage(img.read())
+        response = requests.get(image_path)
+        if response.status_code == 200:
+                mime_image = MIMEImage(BytesIO(response.content).read())
                 mime_image.add_header('Content-Disposition', 'attachment', filename=os.path.basename(image_path))
                 msg.attach(mime_image)
         else:
-            print(f"Hình ảnh không tồn tại: {image_path}")
+                print(f"Không thể tải hình ảnh từ URL: {image_path}")
 
+            
         # Kết nối tới server SMTP
         with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
             server.starttls()  # Kích hoạt mã hóa bảo mật
@@ -38,11 +41,3 @@ def send_email_with_image(to_email, subject, body, image_path):
             print(f"Email đã được gửi tới {to_email}")
     except Exception as e:
         print(f"Không thể gửi email: {e}")
-
-# # Gửi email
-# send_email_with_image(
-#     to_email="tutupham5@gmail.com",  # Địa chỉ người nhận
-#     subject="Đây là email gửi đến phamtu",                 # Chủ đề email
-#     body=" Xin chào bạn , nhà bạn đang có người cố gắng xâm nhập trái phép . Đây là hình ảnh của họ . ",  # Nội dung email
-#     image_path= "D:\phamtuTest\emotion\images.jpg"     # Đường dẫn tới hình ảnh
-# )

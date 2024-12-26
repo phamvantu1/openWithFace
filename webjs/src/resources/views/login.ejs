@@ -102,9 +102,10 @@
                     console.log(response.data.data.token);
 
                     const token = response.data.data.token;
-
+                    const isAdmin = response.data.data.isAdmin;
                     // Lưu token vào localStorage (hoặc sessionStorage)
                     localStorage.setItem('authToken', token);
+                    localStorage.setItem('isAdmin', isAdmin);
                     if (response.data.status === 'success') {
                         window.location.href = '/dashboard';
                     }

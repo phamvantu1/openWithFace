@@ -9,21 +9,20 @@ from PIL import Image
 from ESP32 import *
 import Server
 import mediapipe as mp
-
 # Khởi tạo bộ nhận diện khuôn mặt
 face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
 emotion_detector = FER()
 
-url = 'http://192.168.83.72/cam-lo.jpg'
+url = 'http://192.168.102.30/cam-lo.jpg'
 
 # Đường dẫn thư mục để lưu ảnh
-output_folder  = r'D:\IOT\openWithFace\openWithFace\Python\image'
+output_folder  = 'C:/Users/hoang/Documents/open/openWithFace/Python/image'
 
 db_config = {
     'user': 'root',
-    'password': '123456',
+    'password': '',
     'host': 'localhost',
-    'database': 'face_recognition',
+    'database': 'smartdoor',
 }
 
 conn = mysql.connector.connect(**db_config)
@@ -124,7 +123,7 @@ with mp_hands.Hands(max_num_hands=1, min_detection_confidence=0.7, min_tracking_
             break
 
         if capture_flag == True:
-            image_path = 'D:\IOT\openWithFace\openWithFace\Python\image\captured_face.jpg'
+            image_path = 'C:/Users/hoang/Documents/open/openWithFace/Python/image/captured_face.jpg'
             image = Image.open(image_path)
 
             # Convert the image to a numpy array

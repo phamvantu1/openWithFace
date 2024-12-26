@@ -7,7 +7,7 @@ const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
 const { root_domain } = require('../../util');
-const BASE_URL = root_domain;
+const BASE_URL = "http://192.168.102.3:3000";
 class SiteController {
 
     // User login API
@@ -31,11 +31,20 @@ class SiteController {
                 console.log(user);
 
                 const token = jwt.sign({ userID: user.id, username: user.ten, role: user.role}, 'secret_key', { expiresIn: '1h' });
+                if(user.role === 'admin'){
                 return res.status(200).json({
                     status: 'success',
                     message: 'Login successful',
-                    data: { token }
+                    data: { token, isAdmin: true }
                 });
+            }
+            else {
+                 return res.status(200).json({
+                    status: 'success',
+                    message: 'Login successful',
+                    data: { token, isAdmin: false }
+                });
+            }
             } else {
                 console.log(results);
                 return res.status(400).json({
@@ -95,7 +104,7 @@ class SiteController {
 
     logAccess = async (req, res) => {
         const { userID, time } = req.body;
-        const imageUrl = "http://127.0.0.1:5000/get-image";
+        const imageUrl = "http://192.168.102.30/cam-lo.jpg";
         // const imageFolder = path.join(__dirname, 'public', 'images');
         const imageFolder = path.join(__dirname, '..', '..', 'public', 'images'); // Đổi thành thư mục public/images
 
@@ -166,13 +175,13 @@ class SiteController {
                             if (actionErr) console.error('Error inserting action:', actionErr.message);
                         }
                     );
+                 res.json({ success: true, message: 'Logged successfully', userLogs: "em trung toi choi", doorStatus: 1 });
+
+                }
+                else {
+                    res.json({ success: false, message: 'Logged successfully', userLogs: "em trung toi choi", doorStatus: 0 });
                 }
 
-                res.status(200).json({
-                    status: 'success',
-                    message: 'Log entry created',
-                    data: { logEntry },
-                });
             });
         } catch (error) {
             console.error(error.message);
@@ -182,6 +191,8 @@ class SiteController {
             });
         }
     };
+
+   
     getAllActions = (req, res) => {
         // Truy vấn tất cả hành động, sắp xếp theo id giảm dần (từ mới nhất)
         db.query('SELECT * FROM action ORDER BY id DESC', (err, actions) => {
@@ -393,16 +404,8 @@ async getAllCards(req, res) {
 
 
 async getAllUsers(req, res) {
-    const userId = req.user.userID;
 
-    // Check if the user has an admin role
-    if (req.user.role !== 'admin') {
-        return res.status(403).json({
-            status: 'fail',
-            message: 'Access denied: Admins only',
-            data: null
-        });
-    }
+   
 
     db.query('SELECT * FROM user_iot WHERE role != "admin"', (err, results) => {
         if (err) {
@@ -501,6 +504,56 @@ getUserById (req, res)  {
         }
     });
 };
+
+async deleteUser(req, res) {
+    const { username } = req.body;
+
+    // Check if username is provided
+    if (!username) {
+        return res.status(400).json({
+            status: 'fail',
+            message: 'Please provide the username',
+            data: null
+        });
+    }
+
+    // Check if username exists
+    db.query('SELECT * FROM user_iot WHERE user = ?', [username], (err, results) => {
+        if (err) {
+            return res.status(500).json({
+                status: 'error',
+                message: 'Database error',
+                data: null
+            });
+        }
+
+        if (results.length === 0) {
+            return res.status(400).json({
+                status: 'fail',
+                message: 'Username does not exist',
+                data: null
+            });
+        }
+
+        // Delete the user from the database
+        const query = 'DELETE FROM user_iot WHERE user = ?';
+        db.query(query, [username], (err, results) => {
+            if (err) {
+                return res.status(500).json({
+                    status: 'error',
+                    message: 'Failed to delete user',
+                    data: null
+                });
+            }
+
+            res.status(200).json({
+                status: 'success',
+                message: 'User deleted successfully',
+                data: null
+            });
+        });
+    });
+}
 getProfile(req, res) {
     const userId = req.user.userID;
     // console.log(req.user)
@@ -533,7 +586,7 @@ getProfile(req, res) {
 
 updateProfile(req, res) {
     const userId = req.user.userID; // Lấy userID từ token
-    const { password, passdoor,ten } = req.body; // Dữ liệu cần cập nhật
+    const { password, passdoor,ten, email, phone_number } = req.body; // Dữ liệu cần cập nhật
     console.log(req.body)
     // Kiểm tra xem các trường cần thiết có được gửi lên không
     if (!password || !passdoor) {
@@ -544,9 +597,9 @@ updateProfile(req, res) {
         });
     }
 
-    const query = 'UPDATE user_iot SET password = ?, passdoor = ?, ten = ? WHERE id = ?';
+    const query = 'UPDATE user_iot SET password = ?, passdoor = ?, ten = ?, email = ?, phone_number = ? WHERE id = ?';
 
-    db.query(query, [password, passdoor,ten, userId], (err, results) => {
+    db.query(query, [password, passdoor,ten, email, phone_number, userId], (err, results) => {
         if (err) {
             return res.status(500).json({
                 status: 'error',

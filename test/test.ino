@@ -33,18 +33,18 @@ Keypad keypad = Keypad(makeKeymap(keys), pin_rows, pin_column, ROW_NUM, COLUMN_N
 
 MFRC522 rfid(SS_PIN, RST_PIN); // Instance of the class
 
-const char* ssid = "phamtuu"; // Thay đổi với SSID của bạn
-const char* password = "123456789"; // Thay đổi với mật khẩu WiFi của bạn
+const char* ssid = "tang4"; // Thay đổi với SSID của bạn
+const char* password = "08032003"; // Thay đổi với mật khẩu WiFi của bạn
 
 // const char* serverUrl = "http://192.168.226.239:3000/log_access"; // Địa chỉ IP máy chủ
 // const char* serverUrlpass = "http://192.168.226.239:3000/checkpass"; // Địa chỉ IP máy chủ
 
-const char* serverUrl = "http://192.168.83.239:3000/log_access"; // Địa chỉ IP máy chủ
+const char* serverUrl = "http://192.168.102.3:3000/log_access"; // Địa chỉ IP máy chủ
 
-const char* serverUrlpass = "http://192.168.83.239:5000/check_pass"; // Địa chỉ IP máy chủ
-const char* serverUrlCheckOTP = "http://192.168.83.239:5000/verify-otp";
-const char* sendEmailUrl = "http://192.168.83.239:5000/send-email";
-const char* otpServerUrl = "http://192.168.83.239:5000/generate-otp";
+const char* serverUrlpass = "http://192.168.102.3:5000/check_pass"; // Địa chỉ IP máy chủ
+const char* serverUrlCheckOTP = "http://192.168.102.3:5000/verify-otp";
+const char* sendEmailUrl = "http://192.168.102.3:5000/send-email";
+const char* otpServerUrl = "http://192.168.102.3:5000/generate-otp";
 
 int cntFailed  = 0 ; 
 String inputString = "";

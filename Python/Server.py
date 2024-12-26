@@ -6,9 +6,8 @@ import face_recognition
 import os
 from datetime import datetime
 import mysql.connector  # Add this import
-
-from ESP32 import *
-
+import requests
+from ESP32 import send_command
 # MySQL database configuration
 db_config = {
     'user': 'root',
@@ -16,6 +15,8 @@ db_config = {
     'host': 'localhost',
     'database': 'smartdoor',
 }
+BASE_URL = "http://192.168.102.3:5000"
+image_folder = os.path.join(os.getcwd(), 'public', 'images')
 
 # Initialize MySQL connection and cursor
 conn = mysql.connector.connect(**db_config)
@@ -98,10 +99,10 @@ def process(img):
         send_command("open")
         print("open1")
         unlock = False
-    if isHost :
-        print("day la host")
-        send_command("host")
-        isHost = False
+    # if isHost :
+    #     print("day la host")
+    #     send_command("host")
+    #     isHost = False
 
     cv2.imshow('Webcam', img)
     cv2.waitKey(1)
@@ -109,9 +110,39 @@ def process(img):
     return name
 
 def add_attendance_time(name):
-    query = "INSERT INTO action (card_number, action_type, status, timestamp) VALUES (%s, %s, %s, %s)"
-    values = (name, "faceID", "success", datetime.now())
+    query = "INSERT INTO action (card_number, action_type, status, timestamp, image) VALUES (%s, %s, %s, %s, %s)"
+    image_url =  BASE_URL + "/get-image"
+    path_i = downloadImageAndSave(image_url)
+    values = (name, "faceID", "success", datetime.now(), path_i)
     cursor.execute(query, values)
     conn.commit()
+    
+    
+def downloadImageAndSave(image_url):
+    # Đặt tên file ảnh dựa trên timestamp
+    image_filename = f"{datetime.now().strftime('%Y%m%d%H%M%S')}.jpg"
+    image_path = os.path.join(image_folder, image_filename)
+
+    try:
+        # Tải ảnh từ URL
+        response = requests.get(image_url, stream=True)
+        if response.status_code == 200:
+            with open(image_path, 'wb') as f:
+                for chunk in response.iter_content(1024):
+                    f.write(chunk)
+            print(f"Image saved at {image_path}")
+            image_url = f"{BASE_URL}/getimages/{image_filename}"
+            return image_url
+            # return image_path
+
+
+        else:
+            print(f"Failed to download image, status code: {response.status_code}")
+
+    except Exception as e:
+        print(f"Error downloading image: {e}")
+    
 
 cv2.destroyAllWindows()
+
+
