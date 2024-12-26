@@ -3,16 +3,20 @@ const router = express.Router();
 
 
 const siteController = require('../app/controllers/SiteController');
+
 router.post('/keypad/update', siteController.updatepass);
 router.post('/checkpass', siteController.checkpass);
 router.post('/checkapp', siteController.checkapp);
 router.post('/create_card_lock', siteController.createCardLock);
 router.post('/log_access',siteController.logAccess);
+router.post('/set-time',siteController.settime);
 router.post('/login',siteController.handleLogin);
 router.get('/history',siteController.dulieu);
 router.get('/keypad',siteController.keypad);
 router.get('/thetu',siteController.Quanlythe);
 router.get('/dulieu',siteController.dulieu);
+router.get('/timelock', siteController.timelock);
+router.get('/get-time',siteController.gettime);
 router.get('/login', siteController.login);
 router.get('/', siteController.home);
 

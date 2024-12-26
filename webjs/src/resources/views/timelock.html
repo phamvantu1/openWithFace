@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Lý Thời Gian Ra Vào Cửa</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        nav {
+            width: 100%;
+            background-color: #343a40;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 30px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+
+        .menu-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .logo {
+            color: white;
+            font-size: 26px;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-size: 18px;
+            transition: background-color 0.3s;
+        }
+
+        nav a:hover {
+            background-color: #0056b3;
+            color: #f4f4f4;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            color: white;
+        }
+
+        .logout-button {
+            padding: 8px 15px;
+            background-color: #ff4c4c;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            font-size: 16px;
+        }
+
+        .logout-button:hover {
+            background-color: #e63939;
+        }
+
+        h1 {
+            color: #343a40;
+            font-size: 2.5em;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .container {
+            width: 70%;
+            max-width: 800px;
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 30px;
+            display: flex;
+            justify-content: space-between;
+            /* Chia thành hai cột */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .left-side {
+            width: 50%;
+        }
+
+        .right-side {
+            width: 45%;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            font-size: 16px;
+            display: block;
+            margin-bottom: 10px;
+            color: #555;
+        }
+
+        input[type="time"],
+        input[type="text"],
+        .time {
+            padding: 12px;
+            font-size: 16px;
+            width: 100%;
+            max-width: 300px;
+            margin-top: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        input[type="time"]:focus,
+        input[type="text"]:focus,
+        button:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+
+        .time {
+            margin-bottom: 20px;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-size: 18px;
+            transition: background-color 0.3s;
+        }
+
+        .time:hover {
+            background-color: #0056b3;
+            color: #f4f4f4;
+        }
+
+        .info-time {
+            font-size: 16px;
+            color: #555;
+            margin-top: 10px;
+        }
+
+        .log {
+            margin-top: 30px;
+        }
+
+        .log table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .log table,
+        .log th,
+        .log td {
+            border: 1px solid #ddd;
+        }
+
+        .log th,
+        .log td {
+            padding: 12px;
+            text-align: center;
+        }
+
+        .log th {
+            background-color: #f7f7f7;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav>
+        <div class="menu-left">
+            <div class="logo">Smart Door Control</div>
+            <a href="/">Home</a>
+            <a href="/dulieu">Dữ liệu</a>
+            <a href="/history">Lịch sử</a>
+            <a href="/timelock">Quản lý thời gian ra vào</a>
+        </div>
+        <div class="user-info">
+            <span>Xin chào</span>
+            <button class="logout-button">Logout</button>
+        </div>
+    </nav>
+
+    <h1>Quản Lý Thời Gian Ra Vào Cửa</h1>
+
+    <div class="container">
+        <div class="left-side">
+            <div class="form-group">
+                <label for="open-time">Giờ Mở Cửa:</label>
+                <input type="time" id="open-time" placeholder="Chọn giờ mở cửa" onchange="updateTimeInfo()">
+            </div>
+
+            <div class="form-group">
+                <label for="close-time">Giờ Đóng Cửa:</label>
+                <input type="time" id="close-time" placeholder="Chọn giờ đóng cửa" onchange="updateTimeInfo()">
+            </div>
+
+            <button class="time" onclick="setTime()">Lưu Thời Gian</button>
+        </div>
+
+        <div class="right-side">
+            <div class="form-group">
+                <label for="current-time">Thời Gian Hiện Tại:</label>
+                <input type="text" id="current-time" readonly>
+            </div>
+            <div class="form-group">
+                <p id="open-time-info" class="info-time">Thời gian mở cửa <%= timeopen %>
+                </p>
+                <p id="close-time-info" class="info-time">Tthời gian đóng cửa <%= timeclose %>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Lưu trữ thời gian mở/đóng cửa
+        let openTime = "";
+        let closeTime = "";
+
+        // Hàm lấy thời gian hiện tại theo định dạng 24 giờ
+        function getCurrentTime() {
+            const date = new Date();
+            let hours = date.getHours().toString().padStart(2, '0'); // Đảm bảo 2 chữ số
+            let minutes = date.getMinutes().toString().padStart(2, '0'); // Đảm bảo 2 chữ số
+            return `${hours}:${minutes}`;
+        }
+
+        // Hàm cập nhật thời gian hiện tại
+        function updateCurrentTime() {
+            const currentTime = getCurrentTime();
+            document.getElementById('current-time').value = currentTime;
+        }
+
+        // Hàm lưu thời gian mở và đóng cửa
+        function setTime() {
+            openTime = document.getElementById('open-time').value;
+            closeTime = document.getElementById('close-time').value;
+            fetch('/set-time', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    openTime: openTime,
+                    closeTime: closeTime
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    alert("Thời gian đã được lưu thành công!");
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        // Hàm cập nhật thông tin hiển thị thời gian
+        function updateTimeInfo() {
+            openTime = document.getElementById('open-time').value;
+            closeTime = document.getElementById('close-time').value;
+
+            // Cập nhật hiển thị thời gian mở cửa
+            const openTimeInfo = openTime ? `Giờ mở cửa: ${openTime}` : 'Chưa đặt thời gian mở cửa';
+            document.getElementById('open-time-info').innerText = openTimeInfo;
+
+            // Cập nhật hiển thị thời gian đóng cửa
+            const closeTimeInfo = closeTime ? `Giờ đóng cửa: ${closeTime}` : 'Chưa đặt thời gian đóng cửa';
+            document.getElementById('close-time-info').innerText = closeTimeInfo;
+        }
+
+        // Cập nhật thời gian mỗi giây
+        setInterval(updateCurrentTime, 1000);
+    </script>
+
+</body>
+
+</html>

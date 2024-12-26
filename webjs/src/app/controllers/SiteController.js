@@ -3,6 +3,9 @@ const app = express();
 const socket = require('../../socket/socket');
 const db = require('../../config/db/DBcontext');
 let userLogs = [];
+
+let openTime = "05:00";
+let closeTime = "23:30";
 class SiteController {
 
     login(req,res){
@@ -17,6 +20,32 @@ class SiteController {
         res.render('main.html', {
             username: req.session.username
         });
+    }
+
+    timelock(req,res){
+        res.render('timelock.html',
+            {
+            timeopen: openTime,
+            timeclose: closeTime
+        }
+        );
+    }
+
+    settime(req,res){
+       const { openTime: newOpenTime, closeTime: newCloseTime } = req.body;
+    
+        // Lưu thời gian vào biến
+        openTime = newOpenTime;
+        closeTime = newCloseTime;
+
+        console.log(`Giờ mở cửa: ${openTime}, Giờ đóng cửa: ${closeTime}`);
+        
+        // Trả về phản hồi cho client
+        res.json({ message: "Thời gian đã được lưu thành công" });
+    }
+
+    gettime(req,res){
+        res.json({ openTime, closeTime });
     }
 
     updatepass(req, res) {
