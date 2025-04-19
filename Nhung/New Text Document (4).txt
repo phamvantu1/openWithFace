@@ -1,0 +1,4 @@
+TensorFlow version: 2.12.0
+NumPy version: 1.23.5
+Protobuf version: 4.25.6
+Python: 3.10
