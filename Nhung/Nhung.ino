@@ -5,8 +5,8 @@
 #include <HTTPClient.h>
 
 // 🟡 WiFi
-const char* ssid = "Redmi";
-const char* password = "12345678";
+const char* ssid = "phamtuu";
+const char* password = "123456789";
 WiFiServer server(5000);
 WiFiClient client;
 
@@ -16,9 +16,9 @@ LiquidCrystal_I2C lcd(0x27, 16, 2);
 // 🟢 Servo quay hướng
 Servo servoX, servoY;
 const int servoXPin = 13;
-const int servoYPin = 12;
+const int servoYPin = 33;
 int currentAngleX = 90;
-int currentAngleY = 90;
+int currentAngleY = 60;
 
 // 🔴 Cảm biến siêu âm
 #define TRIG_PIN 2
@@ -32,165 +32,190 @@ Servo FireServo;
 // 🟣 API kiểm tra lệnh bắn
 const char* serverUrlfire = "http://192.168.83.239:5000/check_fire";
 
-// ⏲️ Đọc cảm biến mỗi 5s
+// ⏲️ Đọc cảm biến và HTTP định kỳ
 unsigned long lastDistanceReadTime = 0;
-const unsigned long distanceReadInterval = 5000;
+unsigned long lastHttpCheckTime = 0;
+unsigned long fireStartTime = 0;
+const unsigned long distanceReadInterval = 5000;  // 5s
+const unsigned long httpCheckInterval = 2000;     // 2s
+const unsigned long fireDuration = 3000;          // 3s cho servo bắn
 
 // 📩 Dữ liệu từ socket
 String input = "";
+bool isFiring = false;
 
 void setup() {
-  Wire.begin(21, 22);  // SDA=21, SCL=22
-  lcd.init();
-  lcd.backlight();
-  lcd.setCursor(0, 0);
-  lcd.print("ESP32 Dang ket noi");
+    Wire.begin(21, 22);  // SDA=21, SCL=22
+    lcd.init();
+    lcd.backlight();
+    lcd.setCursor(0, 0);
+    lcd.print("ESP32 Dang ket noi");
 
-  Serial.begin(115200);
+    Serial.begin(115200);
 
-  // WiFi setup
-  WiFi.begin(ssid, password);
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
-  Serial.println("\n✅ WiFi connected");
-  Serial.println(WiFi.localIP());
-  server.begin();
+    // WiFi setup
+    WiFi.begin(ssid, password);
+    while (WiFi.status() != WL_CONNECTED) {
+        delay(500);
+        Serial.print(".");
+    }
+    Serial.println("\n✅ WiFi connected");
+    Serial.println(WiFi.localIP());
+    server.begin();
 
-  // Servo setup
-  servoX.attach(servoXPin);
-  servoY.attach(servoYPin);
-  FireServo.attach(FIRE_SERVO_PIN);
-  servoX.write(currentAngleX);
-  servoY.write(currentAngleY);
-  FireServo.write(0);  // ban đầu đóng
+    // Servo setup
+    servoX.attach(servoXPin);
+    servoY.attach(servoYPin);
+    FireServo.attach(FIRE_SERVO_PIN);
+    servoX.write(currentAngleX);
+    servoY.write(currentAngleY);
+    FireServo.write(0);  // Ban đầu đóng
 
-  // Cảm biến
-  pinMode(TRIG_PIN, OUTPUT);
-  pinMode(ECHO_PIN, INPUT);
+    // Cảm biến
+    pinMode(TRIG_PIN, OUTPUT);
+    pinMode(ECHO_PIN, INPUT);
 
-  // LED bắn
-  pinMode(LED, OUTPUT);
-  digitalWrite(LED, LOW);
+    // LED bắn
+    pinMode(LED, OUTPUT);
+    digitalWrite(LED, LOW);
 }
 
 // 📏 Đo khoảng cách
 float readDistanceCM() {
-  digitalWrite(TRIG_PIN, LOW);
-  delayMicroseconds(2);
-  digitalWrite(TRIG_PIN, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(TRIG_PIN, LOW);
-  long duration = pulseIn(ECHO_PIN, HIGH, 25000);  // timeout 25ms
-  float distance = duration * 0.034 / 2;
-  return distance;
+    digitalWrite(TRIG_PIN, LOW);
+    delayMicroseconds(2);
+    digitalWrite(TRIG_PIN, HIGH);
+    delayMicroseconds(10);
+    digitalWrite(TRIG_PIN, LOW);
+    long duration = pulseIn(ECHO_PIN, HIGH, 10000); // Giảm timeout xuống 10ms
+    float distance = duration * 0.034 / 2;
+    return duration > 0 ? distance : -1; // Trả về -1 nếu lỗi
 }
 
 // 📌 Di chuyển servo mượt
-void moveServoSmooth(Servo& servo, int& currentAngle, int targetAngle, int delayTime = 10) {
-  int step = (targetAngle > currentAngle) ? 1 : -1;
-  while (currentAngle != targetAngle) {
-    currentAngle += step;
+void moveServoSmooth(Servo& servo, int& currentAngle, int targetAngle) {
+    int step = (targetAngle > currentAngle) ? 2 : -2; // Tăng bước lên 5
+    while (abs(currentAngle - targetAngle) > 1) {
+        currentAngle += step;
+        servo.write(currentAngle);
+        delay(1); // Giảm delay xuống 1ms
+    }
+    currentAngle = targetAngle;
     servo.write(currentAngle);
-    delay(delayTime);
-  }
 }
 
 // 📡 Kiểm tra lệnh FIRE từ web
 void checkCommandFromWeb() {
-  HTTPClient http;
-  http.begin(serverUrlfire);
-  int httpResponseCode = http.GET();
+    HTTPClient http;
+    http.begin(serverUrlfire);
+    int httpResponseCode = http.GET();
 
-  if (httpResponseCode > 0) {
-    String response = http.getString();
-    Serial.println("🔥 Phản hồi server: " + response);
-    lcd.clear();
-    lcd.setCursor(0, 0);
+    if (httpResponseCode > 0) {
+        String response = http.getString();
+        Serial.println("🔥 Phản hồi server: " + response);
+        lcd.clear();
+        lcd.setCursor(0, 0);
 
-    if (response.indexOf("\"fire\":true") > -1 || response.indexOf("\"command\":\"fire\"") > -1) {
-      lcd.print("FIRE!");
-      FireServo.write(90);     // Bắn
-      digitalWrite(LED, HIGH);
-      delay(3000);             // Thời gian giữ servo mở
-      FireServo.write(0);      // Thu lại
-      digitalWrite(LED, LOW);
-      lcd.clear();
-      lcd.print("Ready again");
+        if (response.indexOf("\"fire\":true") > -1 || response.indexOf("\"command\":\"fire\"") > -1) {
+            lcd.print("FIRE!");
+            FireServo.write(90);     // Bắn
+            digitalWrite(LED, HIGH);
+            isFiring = true;
+            fireStartTime = millis(); // Bắt đầu đếm thời gian bắn
+        } else {
+            lcd.print("No command");
+        }
     } else {
-      lcd.print("No command");
+        Serial.print("❌ HTTP Error: ");
+        Serial.println(httpResponseCode);
+        lcd.clear();
+        lcd.setCursor(0, 0);
+        lcd.print("Web Error");
     }
-  } else {
-    Serial.print("❌ HTTP Error: ");
-    Serial.println(httpResponseCode);
-    lcd.clear();
-    lcd.setCursor(0, 0);
-    lcd.print("Web Error");
-  }
-
-  http.end();
+    http.end();
 }
 
 void loop() {
-  unsigned long currentTime = millis();
+    unsigned long currentTime = millis();
 
-  // 🔁 Đọc khoảng cách định kỳ
-  if (currentTime - lastDistanceReadTime >= distanceReadInterval) {
-    lastDistanceReadTime = currentTime;
-
-    float distance = readDistanceCM();
-    lcd.clear();
-    lcd.setCursor(0, 0);
-    lcd.print("Khoang cach:");
-    lcd.setCursor(0, 1);
-    lcd.print(distance, 1);
-    lcd.print(" cm");
-
-    Serial.print("📏 Khoảng cách: ");
-    Serial.print(distance);
-    Serial.println(" cm");
-  }
-
-  // 🌐 Kiểm tra lệnh bắn từ Web
-  checkCommandFromWeb();
-
-  // 📶 Xử lý kết nối từ client socket
-  if (!client || !client.connected()) {
-    client = server.available();
-    if (client) {
-      Serial.println("🖥️ Client da ket noi");
-      input = "";
-    }
-  }
-
-  if (client && client.connected()) {
-    while (client.available()) {
-      char c = client.read();
-      if (c == '\n') {
-        input.trim();
-        int commaIndex = input.indexOf(',');
-        if (commaIndex != -1) {
-          int offsetX = input.substring(0, commaIndex).toInt();
-          int offsetY = input.substring(commaIndex + 1).toInt();
-
-          int targetAngleX = 90 + (offsetX * 60.0 / 640.0);
-          int targetAngleY = 90 + (offsetY * 60.0 / 480.0);
-          targetAngleX = constrain(targetAngleX, 0, 180);
-          targetAngleY = constrain(targetAngleY, 0, 180);
-
-          Serial.printf("🎯 Goc X: %d | Y: %d\n", targetAngleX, targetAngleY);
-          moveServoSmooth(servoX, currentAngleX, targetAngleX, 5);
-          moveServoSmooth(servoY, currentAngleY, targetAngleY, 5);
-        } else {
-          Serial.println("⚠️ Dữ liệu socket không hợp lệ");
+    // 📶 Xử lý kết nối từ client socket (ưu tiên)
+    if (!client || !client.connected()) {
+        client = server.available();
+        if (client) {
+            Serial.println("🖥️ Client da ket noi");
+            input = "";
         }
-        input = "";
-      } else {
-        input += c;
-      }
     }
-  }
 
-  delay(300);  // Giảm tải và mượt hơn
+    if (client && client.connected()) {
+        while (client.available()) {
+            char c = client.read();
+            if (c == '\n') {
+                input.trim();
+                if (input.length() > 2 && input.indexOf(',') != -1) {
+                    Serial.printf("🕒 Nhận lúc: %lu ms\n", millis());
+                    int commaIndex = input.indexOf(',');
+                    int offsetX = input.substring(0, commaIndex).toInt();
+                    int offsetY = input.substring(commaIndex + 1).toInt();
+
+                    // Hiệu chỉnh dựa trên FOV (60° ngang, 45° dọc)
+                    int targetAngleX = currentAngleX + (offsetX * 60.0 / 640.0);
+                    int targetAngleY = currentAngleY + (offsetY * 45.0 / 480.0);
+
+                    targetAngleX = constrain(targetAngleX, 0, 180);
+                    targetAngleY = constrain(targetAngleY, 0, 180);
+
+                    Serial.printf("🎯 Offset X: %d, Y: %d | Goc X: %d, Y: %d\n", offsetX, offsetY, targetAngleX, targetAngleY);
+
+                    if (abs(targetAngleX - currentAngleX) > 1) {
+                        moveServoSmooth(servoX, currentAngleX, targetAngleX);
+                    }
+                    if (abs(targetAngleY - currentAngleY) > 1) {
+                        moveServoSmooth(servoY, currentAngleY, targetAngleY);
+                    }
+
+                    currentAngleX = targetAngleX;
+                    currentAngleY = targetAngleY;
+                } else {
+                    Serial.println("⚠️ Dữ liệu socket không hợp lệ: " + input);
+                }
+                input = "";
+            } else {
+                input += c;
+            }
+        }
+    }
+
+    // 🔁 Đọc khoảng cách định kỳ
+    if (currentTime - lastDistanceReadTime >= distanceReadInterval) {
+        lastDistanceReadTime = currentTime;
+        float distance = readDistanceCM();
+        lcd.clear();
+        lcd.setCursor(0, 0);
+        lcd.print("Khoang cach:");
+        lcd.setCursor(0, 1);
+        lcd.print(distance, 1);
+        lcd.print(" cm");
+        Serial.print("📏 Khoảng cách: ");
+        Serial.print(distance);
+        Serial.println(" cm");
+    }
+
+    // // 🌐 Kiểm tra lệnh bắn từ web định kỳ
+    // if (currentTime - lastHttpCheckTime >= httpCheckInterval && !isFiring) {
+    //     lastHttpCheckTime = currentTime;
+    //     checkCommandFromWeb();
+    // }
+
+    // // 🛠️ Kết thúc trạng thái bắn
+    // if (isFiring && currentTime - fireStartTime >= fireDuration) {
+    //     FireServo.write(0);      // Thu lại
+    //     digitalWrite(LED, LOW);
+    //     lcd.clear();
+    //     lcd.setCursor(0, 0);
+    //     lcd.print("Ready again");
+    //     isFiring = false;
+    // }
+
+    // Không dùng delay để tránh chặn
 }

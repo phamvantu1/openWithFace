@@ -1,3 +1,4 @@
+
 #include <WebServer.h>
 #include <WiFi.h>
 #include <esp32cam.h>
@@ -8,7 +9,7 @@ const char* WIFI_PASS = "123456789";
 WebServer server(80);
  
  
-static auto loRes = esp32cam::Resolution::find(800, 480);
+static auto loRes = esp32cam::Resolution::find(320, 240);
 static auto midRes = esp32cam::Resolution::find(350, 530);
 static auto hiRes = esp32cam::Resolution::find(800, 600);
 void serveJpg()
@@ -76,8 +77,12 @@ void  setup(){
   Serial.print("http://");
   Serial.println(WiFi.localIP());
   Serial.println("  /cam-lo.jpg");
+  Serial.println("  /cam-hi.jpg");
+  Serial.println("  /cam-mid.jpg");
  
   server.on("/cam-lo.jpg", handleJpgLo);
+  server.on("/cam-hi.jpg", handleJpgHi);
+  server.on("/cam-mid.jpg", handleJpgMid);
  
   server.begin();
 }
