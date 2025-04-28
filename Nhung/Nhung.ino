@@ -42,6 +42,12 @@ const unsigned long distanceReadInterval = 5000;  // 5s
 const unsigned long httpCheckInterval = 2000;     // 2s
 const unsigned long fireDuration = 3000;          // 3s cho servo bắn
 
+
+unsigned long lastMoveTime = 0;  // Thời gian chuyển động cuối cùng
+const unsigned long idleTime = 5000;  // 5 giây không có chuyển động
+unsigned long lastObjectDetectedTime = 0;
+bool isObjectDetected = false;  // Biến để theo dõi việc phát hiện vật
+
 // 📩 Dữ liệu từ socket
 String input = "";
 bool isFiring = false;
@@ -89,6 +95,7 @@ void setup() {
 }
 
 void displayLongText(String text) {
+    lcd.clear();
     int maxLength = 16;  // Mỗi dòng LCD có tối đa 16 ký tự
     int textLength = text.length();
     
@@ -158,7 +165,11 @@ void loop() {
 
                     Serial.printf("🎯 Offset X: %d, Y: %d | Goc X: %d, Y: %d\n", offsetX, offsetY, targetAngleX, targetAngleY);
 
-                    lcd.print("xin chao anh tu");
+
+                     String longText = "phat hien ke dich";
+                     displayLongText(longText);
+
+                    digitalWrite(LED, HIGH); // Bật đèn LED khi chuyen dong
 
                     if (abs(targetAngleX - currentAngleX) > 1) {
                         moveServoSmooth(servoX, currentAngleX, targetAngleX);
@@ -169,6 +180,11 @@ void loop() {
 
                     currentAngleX = targetAngleX;
                     currentAngleY = targetAngleY;
+
+                    lastMoveTime = millis();  // Cập nhật thời gian khi có chuyển động
+                    lastObjectDetectedTime = currentTime; // Cập nhật thời gian phát hiện vật
+                    isObjectDetected = true;  // Đánh dấu đã phát hiện vật
+
                 } else {
                     Serial.println("⚠️ Dữ liệu socket không hợp lệ: " + input);
                 }
@@ -178,6 +194,17 @@ void loop() {
             }
         }
     }
+
+    
+
+        // Nếu không phát hiện vật trong 10 giây, tắt đèn và hiển thị "Không phát hiện vật"
+        if (isObjectDetected && currentTime - lastObjectDetectedTime > 10000) {
+            digitalWrite(LED, LOW);  // Tắt đèn LED
+            String noDetectionText = "Khong phat hien ke dich";
+            displayLongText(noDetectionText);  // Cập nhật LCD với thông báo "Không phát hiện vật"
+            isObjectDetected = false;  // Đánh dấu không còn phát hiện vật
+        }
+    
 
 
 
