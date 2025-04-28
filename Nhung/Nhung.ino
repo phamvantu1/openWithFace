@@ -173,7 +173,7 @@ void loop() {
                     Serial.printf("🎯 Offset X: %d, Y: %d | Goc X: %d, Y: %d\n", offsetX, offsetY, targetAngleX, targetAngleY);
 
 
-                     String longText = "phat hien ke dich";
+                     String longText = "   phat hien ke          dich";
                      displayLongText(longText);
 
                     digitalWrite(LED, HIGH); // Bật đèn LED khi chuyen dong
@@ -214,6 +214,7 @@ void loop() {
         // còi kêu 
         if (isObjectDetected) {
             digitalWrite(SIREN_PIN, HIGH);  // Bật còi (transistor dẫn)
+            delay(2000);
         } else {
             digitalWrite(SIREN_PIN, LOW);   // Tắt còi (transistor không dẫn)
         }
