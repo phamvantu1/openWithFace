@@ -4,6 +4,10 @@
 #include <LiquidCrystal_I2C.h>
 #include <HTTPClient.h>
 
+
+// Khởi tạo LCD1602 với địa chỉ I2C (thường là 0x27 hoặc 0x3F)
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+
 // 🟡 WiFi
 const char* ssid = "phamtuu";
 const char* password = "123456789";
@@ -72,6 +76,28 @@ void setup() {
     // LED bắn
     pinMode(LED, OUTPUT);
     digitalWrite(LED, LOW);
+
+    lcd.init(); // Khởi động LCD
+    lcd.clear();
+    lcd.backlight(); // Bật đèn nền LCD
+    // Hiển thị chuỗi dài trên LCD
+    String longText = "    san sang       chien dau !!!";
+    displayLongText(longText);
+
+    Serial.println("LCD Displayed");
+
+}
+
+void displayLongText(String text) {
+    int maxLength = 16;  // Mỗi dòng LCD có tối đa 16 ký tự
+    int textLength = text.length();
+    
+    // Vòng lặp qua từng phần của chuỗi
+    for (int i = 0; i < textLength; i += maxLength) {
+        String part = text.substring(i, i + maxLength); // Cắt chuỗi thành đoạn con
+        lcd.setCursor(0, i / maxLength);  // Di chuyển con trỏ đến dòng tiếp theo
+        lcd.print(part);  // In phần của chuỗi vào LCD
+    }
 }
 
 // 📏 Đo khoảng cách
@@ -131,6 +157,8 @@ void loop() {
                     targetAngleY = constrain(targetAngleY, 0, 180);
 
                     Serial.printf("🎯 Offset X: %d, Y: %d | Goc X: %d, Y: %d\n", offsetX, offsetY, targetAngleX, targetAngleY);
+
+                    lcd.print("xin chao anh tu");
 
                     if (abs(targetAngleX - currentAngleX) > 1) {
                         moveServoSmooth(servoX, currentAngleX, targetAngleX);
