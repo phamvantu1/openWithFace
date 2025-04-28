@@ -10,8 +10,6 @@ const char* password = "123456789";
 WiFiServer server(5000);
 WiFiClient client;
 
-// 🔵 LCD (I2C address thường là 0x27)
-LiquidCrystal_I2C lcd(0x27, 16, 2);
 
 // 🟢 Servo quay hướng
 Servo servoX, servoY;
@@ -45,11 +43,7 @@ String input = "";
 bool isFiring = false;
 
 void setup() {
-    Wire.begin(21, 22);  // SDA=21, SCL=22
-    lcd.init();
-    lcd.backlight();
-    lcd.setCursor(0, 0);
-    lcd.print("ESP32 Dang ket noi");
+
 
     Serial.begin(115200);
 
@@ -104,36 +98,7 @@ void moveServoSmooth(Servo& servo, int& currentAngle, int targetAngle) {
     servo.write(currentAngle);
 }
 
-// 📡 Kiểm tra lệnh FIRE từ web
-void checkCommandFromWeb() {
-    HTTPClient http;
-    http.begin(serverUrlfire);
-    int httpResponseCode = http.GET();
 
-    if (httpResponseCode > 0) {
-        String response = http.getString();
-        Serial.println("🔥 Phản hồi server: " + response);
-        lcd.clear();
-        lcd.setCursor(0, 0);
-
-        if (response.indexOf("\"fire\":true") > -1 || response.indexOf("\"command\":\"fire\"") > -1) {
-            lcd.print("FIRE!");
-            FireServo.write(90);     // Bắn
-            digitalWrite(LED, HIGH);
-            isFiring = true;
-            fireStartTime = millis(); // Bắt đầu đếm thời gian bắn
-        } else {
-            lcd.print("No command");
-        }
-    } else {
-        Serial.print("❌ HTTP Error: ");
-        Serial.println(httpResponseCode);
-        lcd.clear();
-        lcd.setCursor(0, 0);
-        lcd.print("Web Error");
-    }
-    http.end();
-}
 
 void loop() {
     unsigned long currentTime = millis();
@@ -186,36 +151,6 @@ void loop() {
         }
     }
 
-    // 🔁 Đọc khoảng cách định kỳ
-    if (currentTime - lastDistanceReadTime >= distanceReadInterval) {
-        lastDistanceReadTime = currentTime;
-        float distance = readDistanceCM();
-        lcd.clear();
-        lcd.setCursor(0, 0);
-        lcd.print("Khoang cach:");
-        lcd.setCursor(0, 1);
-        lcd.print(distance, 1);
-        lcd.print(" cm");
-        Serial.print("📏 Khoảng cách: ");
-        Serial.print(distance);
-        Serial.println(" cm");
-    }
 
-    // // 🌐 Kiểm tra lệnh bắn từ web định kỳ
-    // if (currentTime - lastHttpCheckTime >= httpCheckInterval && !isFiring) {
-    //     lastHttpCheckTime = currentTime;
-    //     checkCommandFromWeb();
-    // }
 
-    // // 🛠️ Kết thúc trạng thái bắn
-    // if (isFiring && currentTime - fireStartTime >= fireDuration) {
-    //     FireServo.write(0);      // Thu lại
-    //     digitalWrite(LED, LOW);
-    //     lcd.clear();
-    //     lcd.setCursor(0, 0);
-    //     lcd.print("Ready again");
-    //     isFiring = false;
-    // }
-
-    // Không dùng delay để tránh chặn
 }
