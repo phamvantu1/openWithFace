@@ -31,6 +31,9 @@ int currentAngleY = 60;
 #define LED 14
 Servo FireServo;
 
+// còi 
+#define SIREN_PIN 19  // Chân GPIO điều khiển transistor
+
 // 🟣 API kiểm tra lệnh bắn
 const char* serverUrlfire = "http://192.168.83.239:5000/check_fire";
 
@@ -79,9 +82,13 @@ void setup() {
     pinMode(TRIG_PIN, OUTPUT);
     pinMode(ECHO_PIN, INPUT);
 
-    // LED bắn
+    // LED 
     pinMode(LED, OUTPUT);
     digitalWrite(LED, LOW);
+
+    // còi 
+    pinMode(SIREN_PIN, OUTPUT);
+    digitalWrite(SIREN_PIN, LOW);  // Bắt đầu với còi tắt
 
     lcd.init(); // Khởi động LCD
     lcd.clear();
@@ -204,8 +211,12 @@ void loop() {
             displayLongText(noDetectionText);  // Cập nhật LCD với thông báo "Không phát hiện vật"
             isObjectDetected = false;  // Đánh dấu không còn phát hiện vật
         }
+        // còi kêu 
+        if (isObjectDetected) {
+            digitalWrite(SIREN_PIN, HIGH);  // Bật còi (transistor dẫn)
+        } else {
+            digitalWrite(SIREN_PIN, LOW);   // Tắt còi (transistor không dẫn)
+        }
     
-
-
 
 }
