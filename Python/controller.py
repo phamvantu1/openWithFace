@@ -5,6 +5,7 @@ import pyotp
 import speech_recognition as sr
 import mysql.connector
 from mysql.connector import Error
+import socket
 
 from Python.ESP32 import send_command
 from Python.Send_Email import send_email_with_image
@@ -18,6 +19,44 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 # Bí mật dùng để sinh OTP (bạn có thể tạo ngẫu nhiên)
 SECRET_KEY = pyotp.random_base32()
 
+esp32_ip = "192.168.218.173"
+esp32_port = 5000
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+# Kết nối với ESP32
+try:
+    s.connect((esp32_ip, esp32_port))
+    print("✅ Đã kết nối ESP32")
+    s.setblocking(False)  # Chế độ không chặn
+except ConnectionRefusedError:
+    print("❌ Không kết nối được ESP32")
+    exit()
+
+def send_command(offset_x, offset_y):
+    try:
+        message = f"{offset_x},{offset_y}\n"
+        s.sendall(message.encode())
+        print(f"📤 Gửi lệnh di chuyển: X = {offset_x}, Y = {offset_y}")
+    except Exception as e:
+        print(f"❌ Lỗi gửi dữ liệu: {e}")
+
+# API điều khiển Servo
+@app.route('/control', methods=['POST'])
+def control_servo():
+    try:
+        # Lấy lệnh di chuyển từ ứng dụng
+        data = request.get_json()
+        offset_x = data.get('offset_x', 0)
+        offset_y = data.get('offset_y', 0)
+
+        if offset_x == 0 and offset_y == 0:
+            return jsonify({"status": "error", "message": "Không có lệnh di chuyển được gửi"}), 400
+
+        # Gửi lệnh điều khiển servo
+        send_command(offset_x, offset_y)
+        return jsonify({"status": "success", "message": "Lệnh di chuyển đã được gửi thành công"}), 200
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
 @app.route('/')
 def index():
     return render_template('main.html')
@@ -27,7 +66,7 @@ db_config = {
     'user': 'root',
     'password': '123456',
     'host': 'localhost',
-    'database': 'smartdoor',
+    'database': 'nhungiot',
 }
 
 @app.route('/upload', methods=['POST'])
