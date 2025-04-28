@@ -5,7 +5,7 @@ db_config = {
     'user': 'root',
     'password': '123456',
     'host': 'localhost',
-    'database': 'smartdoor',
+    'database': 'nhungiot',
 }
 
 conn = mysql.connector.connect(**db_config)

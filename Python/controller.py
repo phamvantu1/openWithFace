@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify, send_from_directory, render_template
 from flask_cors import CORS
+import time
 import os
 import pyotp
 import speech_recognition as sr
@@ -22,29 +23,43 @@ SECRET_KEY = pyotp.random_base32()
 esp32_ip = "192.168.218.173"
 esp32_port = 5000
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+last_send_time = 0
+min_send_interval = 0.1  # Giới hạn gửi lệnh mỗi 100ms
 
 # Kết nối với ESP32
-try:
-    s.connect((esp32_ip, esp32_port))
-    print("✅ Đã kết nối ESP32")
-    s.setblocking(False)  # Chế độ không chặn
-except ConnectionRefusedError:
-    print("❌ Không kết nối được ESP32")
-    exit()
+def connect_to_esp32():
+    global s
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.connect((esp32_ip, esp32_port))
+        s.setblocking(False)
+        print("✅ Đã kết nối ESP32")
+        return True
+    except ConnectionRefusedError:
+        print("❌ Không kết nối được ESP32")
+        return False
 
+# Gửi lệnh
 def send_command(offset_x, offset_y):
+    global last_send_time
+    current_time = time.time()
+    if current_time - last_send_time < min_send_interval:
+        return False  # Bỏ qua nếu gửi quá nhanh
     try:
         message = f"{offset_x},{offset_y}\n"
         s.sendall(message.encode())
         print(f"📤 Gửi lệnh di chuyển: X = {offset_x}, Y = {offset_y}")
+        last_send_time = current_time
+        return True
     except Exception as e:
         print(f"❌ Lỗi gửi dữ liệu: {e}")
+        connect_to_esp32()  # Thử kết nối lại
+        return False
 
 # API điều khiển Servo
 @app.route('/control', methods=['POST'])
 def control_servo():
     try:
-        # Lấy lệnh di chuyển từ ứng dụng
         data = request.get_json()
         offset_x = data.get('offset_x', 0)
         offset_y = data.get('offset_y', 0)
@@ -52,9 +67,10 @@ def control_servo():
         if offset_x == 0 and offset_y == 0:
             return jsonify({"status": "error", "message": "Không có lệnh di chuyển được gửi"}), 400
 
-        # Gửi lệnh điều khiển servo
-        send_command(offset_x, offset_y)
-        return jsonify({"status": "success", "message": "Lệnh di chuyển đã được gửi thành công"}), 200
+        if send_command(offset_x, offset_y):
+            return jsonify({"status": "success", "message": "Lệnh di chuyển đã được gửi thành công"}), 200
+        else:
+            return jsonify({"status": "error", "message": "Gửi lệnh thất bại hoặc gửi quá nhanh"}), 429
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 @app.route('/')

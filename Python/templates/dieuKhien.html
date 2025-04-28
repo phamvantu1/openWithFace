@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Điều khiển Servo</title>
+    <style>
+        .btn {
+            width: 100px;
+            height: 100px;
+            margin: 10px;
+            font-size: 18px;
+            cursor: pointer;
+            text-align: center;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <div style="text-align: center;">
+        <button id="up" class="btn">Lên</button>
+        <button id="down" class="btn">Xuống</button>
+        <button id="left" class="btn">Trái</button>
+        <button id="right" class="btn">Phải</button>
+    </div>
+
+    <script>
+        let activeRequest = null; // Biến để theo dõi yêu cầu API đang hoạt động
+
+        // Hàm gửi yêu cầu điều khiển
+        function sendCommand(offset_x, offset_y) {
+            fetch('http://localhost:5000/control', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ offset_x, offset_y })
+            })
+            .then(response => response.json())
+            .then(data => console.log(data))
+            .catch(error => console.error('Lỗi:', error));
+        }
+
+        // Hàm để bắt đầu gửi lệnh liên tục
+        function startSendingCommand(offset_x, offset_y) {
+            // Gửi lệnh ngay khi nhấn nút
+            sendCommand(offset_x, offset_y);
+
+            // Gửi lệnh liên tục mỗi 100ms (hoặc bất kỳ thời gian nào bạn muốn)
+            activeRequest = setInterval(() => {
+                sendCommand(offset_x, offset_y);
+            }, 100);
+        }
+
+        // Hàm để dừng gửi lệnh khi thả tay
+        function stopSendingCommand() {
+            clearInterval(activeRequest);
+            activeRequest = null;
+        }
+
+        // Xử lý sự kiện khi nhấn và giữ nút
+        document.getElementById('up').addEventListener('mousedown', () => {
+            startSendingCommand(0, -50);  // Di chuyển lên
+        });
+        document.getElementById('down').addEventListener('mousedown', () => {
+            startSendingCommand(0, 50);  // Di chuyển xuống
+        });
+        document.getElementById('left').addEventListener('mousedown', () => {
+            startSendingCommand(-50, 0); // Di chuyển trái
+        });
+        document.getElementById('right').addEventListener('mousedown', () => {
+            startSendingCommand(50, 0);  // Di chuyển phải
+        });
+
+        // Dừng khi thả tay (sự kiện mouseup)
+        document.getElementById('up').addEventListener('mouseup', stopSendingCommand);
+        document.getElementById('down').addEventListener('mouseup', stopSendingCommand);
+        document.getElementById('left').addEventListener('mouseup', stopSendingCommand);
+        document.getElementById('right').addEventListener('mouseup', stopSendingCommand);
+
+        // Cũng dừng khi thả tay ra ngoài nút (trường hợp nếu người dùng di chuyển chuột ra ngoài)
+        document.addEventListener('mouseup', stopSendingCommand);
+    </script>
+</body>
+</html>

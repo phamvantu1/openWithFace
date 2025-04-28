@@ -5,7 +5,7 @@ const dbConfig = {
     host: 'localhost',
     user: 'root',
     password: '123456',
-    database: 'smartdoor'
+    database: 'nhungiot'
 };
 
 const connection = mysql.createConnection(dbConfig);
