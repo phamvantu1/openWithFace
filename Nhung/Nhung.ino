@@ -14,6 +14,10 @@ const char* password = "123456789";
 WiFiServer server(5000);
 WiFiClient client;
 
+// Định nghĩa chân servo và khởi tạo đối tượng Servo
+#define SERVO 5
+Servo doorServo;
+
 
 // 🟢 Servo quay hướng
 Servo servoX, servoY;
@@ -51,6 +55,9 @@ const unsigned long idleTime = 5000;  // 5 giây không có chuyển động
 unsigned long lastObjectDetectedTime = 0;
 bool isObjectDetected = false;  // Biến để theo dõi việc phát hiện vật
 
+
+bool openCommandReceived = false;
+
 // 📩 Dữ liệu từ socket
 String input = "";
 bool isFiring = false;
@@ -77,6 +84,9 @@ void setup() {
     servoX.write(currentAngleX);
     servoY.write(currentAngleY);
     FireServo.write(0);  // Ban đầu đóng
+
+    // servo cho  bắn 
+    doorServo.attach(SERVO);
 
     // Cảm biến
     pinMode(TRIG_PIN, OUTPUT);
@@ -136,6 +146,38 @@ void moveServoSmooth(Servo& servo, int& currentAngle, int targetAngle) {
     }
     currentAngle = targetAngle;
     servo.write(currentAngle);
+}
+
+
+void checkFacialRecognition() {
+    WiFiClient client = server.available();
+    if (client) {
+        Serial.println("Nhận khuôn mặt thành công");
+        while (client.connected()) {
+            if (client.available()) {
+                String command = client.readStringUntil('\n');
+                command.trim();
+                Serial.println(command);
+                if (command == "open") {
+                    lcd.clear();
+                    lcd.print("Open : Success");
+                    openCommandReceived = true;
+                    openStartTime = millis();
+                }
+                if (command == "host") {
+                    lcd.clear();
+                    lcd.print("HOST bat nhac");
+                    digitalWrite(LED, HIGH); // Bật đèn LED khi chu nha
+                    delay(20000); // bat den 20s
+                    digitalWrite(LED, LOW); // Tắt đèn LED khi het 10s
+                    lcd.clear();
+                    lcd.print("close door");
+                }
+            }
+        }
+        client.stop();
+        Serial.println("Client disconnected");
+    }
 }
 
 
@@ -218,6 +260,25 @@ void loop() {
         } else {
             digitalWrite(SIREN_PIN, LOW);   // Tắt còi (transistor không dẫn)
         }
+
+
+
+      checkFacialRecognition();
+
+
+       // xử lý bắn 
+        if (openCommandReceived && (millis() - openStartTime < openDuration)) {
+        doorServo.write(90); // Open door
+          
+      } else {
+        doorServo.write(0); // Close door
+        
+         if (openCommandReceived){
+          lcd.clear();
+          lcd.print("close door");
+         }
+        openCommandReceived = false;
+      }
     
 
 }
