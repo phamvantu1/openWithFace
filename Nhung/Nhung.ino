@@ -14,7 +14,7 @@ const char* password = "123456789";
 WiFiServer server(5000);
 WiFiClient client;
 
-// Định nghĩa chân servo và khởi tạo đối tượng Servo
+// Định nghĩa chân servo và khởi tạo đối tượng Servo bắn 
 #define SERVO 5
 Servo doorServo;
 
@@ -54,6 +54,9 @@ unsigned long lastMoveTime = 0;  // Thời gian chuyển động cuối cùng
 const unsigned long idleTime = 5000;  // 5 giây không có chuyển động
 unsigned long lastObjectDetectedTime = 0;
 bool isObjectDetected = false;  // Biến để theo dõi việc phát hiện vật
+
+unsigned long openStartTime = 0;
+const unsigned long openDuration = 5000;
 
 
 bool openCommandReceived = false;
@@ -164,15 +167,7 @@ void checkFacialRecognition() {
                     openCommandReceived = true;
                     openStartTime = millis();
                 }
-                if (command == "host") {
-                    lcd.clear();
-                    lcd.print("HOST bat nhac");
-                    digitalWrite(LED, HIGH); // Bật đèn LED khi chu nha
-                    delay(20000); // bat den 20s
-                    digitalWrite(LED, LOW); // Tắt đèn LED khi het 10s
-                    lcd.clear();
-                    lcd.print("close door");
-                }
+                
             }
         }
         client.stop();
