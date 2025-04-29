@@ -56,6 +56,40 @@ def send_command(offset_x, offset_y):
         connect_to_esp32()  # Thử kết nối lại
         return False
 
+def send_command_string(command_str):
+    global last_send_time
+    current_time = time.time()
+    if current_time - last_send_time < min_send_interval:
+        return False  # Gửi quá nhanh
+    try:
+        message = f"{command_str}\n"
+        s.sendall(message.encode())
+        print(f"📤 Gửi lệnh chuỗi: {command_str}")
+        last_send_time = current_time
+        return True
+    except Exception as e:
+        print(f"❌ Lỗi gửi chuỗi: {e}")
+        connect_to_esp32()
+        return False
+
+
+@app.route('/open', methods=['POST'])
+def send_custom_command():
+    try:
+        data = request.get_json()
+        command = data.get('command')
+
+        if not command:
+            return jsonify({"status": "error", "message": "Thiếu trường 'command'"}), 400
+
+        if send_command_string(command):
+            return jsonify({"status": "success", "message": f"Lệnh '{command}' đã được gửi"}), 200
+        else:
+            return jsonify({"status": "error", "message": "Gửi lệnh thất bại hoặc gửi quá nhanh"}), 429
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
 # API điều khiển Servo
 @app.route('/control', methods=['POST'])
 def control_servo():

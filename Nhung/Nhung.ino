@@ -38,25 +38,13 @@ Servo FireServo;
 // còi 
 #define SIREN_PIN 19  // Chân GPIO điều khiển transistor
 
-// 🟣 API kiểm tra lệnh bắn
-const char* serverUrlfire = "http://192.168.83.239:5000/check_fire";
-
-// ⏲️ Đọc cảm biến và HTTP định kỳ
-unsigned long lastDistanceReadTime = 0;
-unsigned long lastHttpCheckTime = 0;
-unsigned long fireStartTime = 0;
-const unsigned long distanceReadInterval = 5000;  // 5s
-const unsigned long httpCheckInterval = 2000;     // 2s
-const unsigned long fireDuration = 3000;          // 3s cho servo bắn
-
-
 unsigned long lastMoveTime = 0;  // Thời gian chuyển động cuối cùng
-const unsigned long idleTime = 5000;  // 5 giây không có chuyển động
+
 unsigned long lastObjectDetectedTime = 0;
 bool isObjectDetected = false;  // Biến để theo dõi việc phát hiện vật
 
 unsigned long openStartTime = 0;
-const unsigned long openDuration = 5000;
+const unsigned long openDuration = 3000;
 
 
 bool openCommandReceived = false;
@@ -152,28 +140,7 @@ void moveServoSmooth(Servo& servo, int& currentAngle, int targetAngle) {
 }
 
 
-void checkFacialRecognition() {
-    WiFiClient client = server.available();
-    if (client) {
-        Serial.println("Nhận khuôn mặt thành công");
-        while (client.connected()) {
-            if (client.available()) {
-                String command = client.readStringUntil('\n');
-                command.trim();
-                Serial.println(command);
-                if (command == "open") {
-                    lcd.clear();
-                    lcd.print("Open : Success");
-                    openCommandReceived = true;
-                    openStartTime = millis();
-                }
-                
-            }
-        }
-        client.stop();
-        Serial.println("Client disconnected");
-    }
-}
+
 
 
 
@@ -194,48 +161,51 @@ void loop() {
             char c = client.read();
             if (c == '\n') {
                 input.trim();
-                if (input.length() > 2 && input.indexOf(',') != -1) {
-                    Serial.printf("🕒 Nhận lúc: %lu ms\n", millis());
-                    int commaIndex = input.indexOf(',');
-                    int offsetX = input.substring(0, commaIndex).toInt();
-                    int offsetY = input.substring(commaIndex + 1).toInt();
+                  if (input == "open") {
+                      openCommandReceived = true;
+                      openStartTime = millis();
+                  } else  if (input.length() > 2 && input.indexOf(',') != -1) {
+                      Serial.printf("🕒 Nhận lúc: %lu ms\n", millis());
+                      int commaIndex = input.indexOf(',');
+                      int offsetX = input.substring(0, commaIndex).toInt();
+                      int offsetY = input.substring(commaIndex + 1).toInt();
 
-                    // Hiệu chỉnh dựa trên FOV (60° ngang, 45° dọc)
-                    int targetAngleX = currentAngleX + (offsetX * 60.0 / 640.0);
-                    int targetAngleY = currentAngleY + (offsetY * 45.0 / 480.0);
+                      // Hiệu chỉnh dựa trên FOV (60° ngang, 45° dọc)
+                      int targetAngleX = currentAngleX + (offsetX * 60.0 / 640.0);
+                      int targetAngleY = currentAngleY + (offsetY * 45.0 / 480.0);
 
-                    targetAngleX = constrain(targetAngleX, 0, 180);
-                    targetAngleY = constrain(targetAngleY, 0, 180);
+                      targetAngleX = constrain(targetAngleX, 0, 180);
+                      targetAngleY = constrain(targetAngleY, 0, 180);
 
-                    Serial.printf("🎯 Offset X: %d, Y: %d | Goc X: %d, Y: %d\n", offsetX, offsetY, targetAngleX, targetAngleY);
+                      Serial.printf("🎯 Offset X: %d, Y: %d | Goc X: %d, Y: %d\n", offsetX, offsetY, targetAngleX, targetAngleY);
 
 
-                     String longText = "   phat hien ke          dich";
-                     displayLongText(longText);
+                      String longText = "   Phat hien ke      dich";
+                      displayLongText(longText);
 
-                    digitalWrite(LED, HIGH); // Bật đèn LED khi chuyen dong
+                      digitalWrite(LED, HIGH); // Bật đèn LED khi chuyen dong
 
-                    if (abs(targetAngleX - currentAngleX) > 1) {
-                        moveServoSmooth(servoX, currentAngleX, targetAngleX);
-                    }
-                    if (abs(targetAngleY - currentAngleY) > 1) {
-                        moveServoSmooth(servoY, currentAngleY, targetAngleY);
-                    }
+                          if (abs(targetAngleX - currentAngleX) > 1) {
+                              moveServoSmooth(servoX, currentAngleX, targetAngleX);
+                          }
+                          if (abs(targetAngleY - currentAngleY) > 1) {
+                              moveServoSmooth(servoY, currentAngleY, targetAngleY);
+                          }
 
-                    currentAngleX = targetAngleX;
-                    currentAngleY = targetAngleY;
+                      currentAngleX = targetAngleX;
+                      currentAngleY = targetAngleY;
 
-                    lastMoveTime = millis();  // Cập nhật thời gian khi có chuyển động
-                    lastObjectDetectedTime = currentTime; // Cập nhật thời gian phát hiện vật
-                    isObjectDetected = true;  // Đánh dấu đã phát hiện vật
+                      lastMoveTime = millis();  // Cập nhật thời gian khi có chuyển động
+                      lastObjectDetectedTime = currentTime; // Cập nhật thời gian phát hiện vật
+                      isObjectDetected = true;  // Đánh dấu đã phát hiện vật
 
-                } else {
-                    Serial.println("⚠️ Dữ liệu socket không hợp lệ: " + input);
-                }
-                input = "";
+                  }else {
+                          Serial.println("⚠️ Dữ liệu socket không hợp lệ: " + input);
+                        }
+                  input = "";
             } else {
                 input += c;
-            }
+              }
         }
     }
 
@@ -244,36 +214,34 @@ void loop() {
         // Nếu không phát hiện vật trong 10 giây, tắt đèn và hiển thị "Không phát hiện vật"
         if (isObjectDetected && currentTime - lastObjectDetectedTime > 10000) {
             digitalWrite(LED, LOW);  // Tắt đèn LED
-            String noDetectionText = "Khong phat hien ke dich";
+            String noDetectionText = "Khong phat hien       ke dich";
             displayLongText(noDetectionText);  // Cập nhật LCD với thông báo "Không phát hiện vật"
             isObjectDetected = false;  // Đánh dấu không còn phát hiện vật
         }
+
+
         // còi kêu 
         if (isObjectDetected) {
-            digitalWrite(SIREN_PIN, HIGH);  // Bật còi (transistor dẫn)
-            delay(2000);
+            for (int i = 0; i < 3; i++) {
+                digitalWrite(SIREN_PIN, HIGH);  // Bật còi
+                delay(250);                     // Chờ 250ms
+                digitalWrite(SIREN_PIN, LOW);   // Tắt còi
+                delay(250);                     // Chờ 250ms
+            }
         } else {
-            digitalWrite(SIREN_PIN, LOW);   // Tắt còi (transistor không dẫn)
+            digitalWrite(SIREN_PIN, LOW);       // Đảm bảo tắt còi nếu không phát hiện
         }
-
-
-
-      checkFacialRecognition();
 
 
        // xử lý bắn 
         if (openCommandReceived && (millis() - openStartTime < openDuration)) {
-        doorServo.write(90); // Open door
+        doorServo.write(0); // Open door
           
-      } else {
-        doorServo.write(0); // Close door
+        } else {
+          doorServo.write(90); // Close door
         
-         if (openCommandReceived){
-          lcd.clear();
-          lcd.print("close door");
-         }
-        openCommandReceived = false;
-      }
+          openCommandReceived = false;
+        }
     
 
 }
