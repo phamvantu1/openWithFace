@@ -117,9 +117,8 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
             else if (command == "Space") {
                 Serial.println("Arduino: Bắn");
                 // Xử lý bắn
-                doorServo.write(90); // Mở cửa
-                delay(1000);
-                doorServo.write(0); // Đóng cửa
+                openCommandReceived = true;
+                openStartTime = millis();
             }
             else if (command == "STOP") {
                 Serial.println("Arduino: Dừng di chuyển");
@@ -299,7 +298,7 @@ void loop() {
         // Nếu không phát hiện vật trong 10 giây, tắt đèn và hiển thị "Không phát hiện vật"
         if (isObjectDetected && currentTime - lastObjectDetectedTime > 10000) {
             digitalWrite(LED, LOW);  // Tắt đèn LED
-            String noDetectionText = "Khong phat hien       ke dich";
+            String noDetectionText = "Khong phat hien      ke dich";
             displayLongText(noDetectionText);  // Cập nhật LCD với thông báo "Không phát hiện vật"
             isObjectDetected = false;  // Đánh dấu không còn phát hiện vật
         }
@@ -320,10 +319,10 @@ void loop() {
 
        // xử lý bắn 
         if (openCommandReceived && (millis() - openStartTime < openDuration)) {
-        doorServo.write(0); // Open door
+        doorServo.write(0); // Open súng
           
         } else {
-          doorServo.write(90); // Close door
+          doorServo.write(90); // Close súng
         
           openCommandReceived = false;
         }
