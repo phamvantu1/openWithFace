@@ -3,6 +3,11 @@
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 #include <HTTPClient.h>
+#include <WebSocketsServer.h>
+#include <ArduinoJson.h> 
+
+// Khởi tạo WebSocket server
+WebSocketsServer webSocket = WebSocketsServer(8080);
 
 
 // Khởi tạo LCD1602 với địa chỉ I2C (thường là 0x27 hoặc 0x3F)
@@ -53,6 +58,77 @@ bool openCommandReceived = false;
 String input = "";
 bool isFiring = false;
 
+
+// Hàm xử lý sự kiện WebSocket
+void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length) {
+    switch(type) {
+        case WStype_DISCONNECTED:
+            Serial.printf("[%u] Disconnected!\n", num);
+            break;
+        case WStype_CONNECTED:
+            Serial.printf("[%u] Connected!\n", num);
+            break;
+        case WStype_TEXT:
+
+
+            Serial.printf("[%u] Received text: %s\n", num, payload);
+   
+              // Tạo bộ phân tích JSON
+            StaticJsonDocument<200> doc;
+            DeserializationError error = deserializeJson(doc, payload);
+
+            if (error) {
+                Serial.print(F("❌ Lỗi phân tích JSON: "));
+                Serial.println(error.f_str());
+                return;
+            }
+
+            String command = doc["command"];  // Lấy giá trị của khóa "command"
+            Serial.printf("📩 Lệnh nhận được: %s\n", command.c_str());
+            
+            if (command == "ArrowUp") {
+                Serial.println("Arduino: Di chuyển lên");
+                // Di chuyển servoY lên (giảm góc)
+                int newAngleY = currentAngleY - 10;
+                newAngleY = constrain(newAngleY, 0, 180);
+                moveServoSmooth(servoY, currentAngleY, newAngleY);
+            }
+            else if (command == "ArrowDown") {
+                 Serial.println("Arduino: Di chuyển xuống");
+                // Di chuyển servoY xuống (tăng góc)
+                int newAngleY = currentAngleY + 10;
+                newAngleY = constrain(newAngleY, 0, 180);
+                moveServoSmooth(servoY, currentAngleY, newAngleY);
+            }
+            else if (command == "ArrowLeft") {
+                Serial.println("Arduino: Di chuyển sang trái");
+                // Di chuyển servoX sang trái (giảm góc)
+                int newAngleX = currentAngleX - 10;
+                newAngleX = constrain(newAngleX, 0, 180);
+                moveServoSmooth(servoX, currentAngleX, newAngleX);
+            }
+            else if (command == "ArrowRight") {
+                Serial.println("Arduino: Di chuyển sang phải");
+                // Di chuyển servoX sang phải (tăng góc)
+                int newAngleX = currentAngleX + 10;
+                newAngleX = constrain(newAngleX, 0, 180);
+                moveServoSmooth(servoX, currentAngleX, newAngleX);
+            }
+            else if (command == "Space") {
+                Serial.println("Arduino: Bắn");
+                // Xử lý bắn
+                doorServo.write(90); // Mở cửa
+                delay(1000);
+                doorServo.write(0); // Đóng cửa
+            }
+            else if (command == "STOP") {
+                Serial.println("Arduino: Dừng di chuyển");
+                // Không cần xử lý gì thêm vì servo sẽ giữ nguyên vị trí
+            }
+            break;
+    }
+}
+
 void setup() {
 
 
@@ -67,6 +143,11 @@ void setup() {
     Serial.println("\n✅ WiFi connected");
     Serial.println(WiFi.localIP());
     server.begin();
+
+    // Khởi tạo WebSocket
+    webSocket.begin();
+    webSocket.onEvent(webSocketEvent);
+    Serial.println("WebSocket server started");
 
     // Servo setup
     servoX.attach(servoXPin);
@@ -155,6 +236,10 @@ void loop() {
             input = "";
         }
     }
+
+
+    // Xử lý WebSocket
+    webSocket.loop();
 
     if (client && client.connected()) {
         while (client.available()) {
