@@ -1,7 +1,8 @@
 import cv2
 import numpy as np
-import socket
+import websocket
 import time
+import json
 import requests
 import tensorflow as tf
 from tensorflow.keras.models import load_model
@@ -43,24 +44,25 @@ SAFE_ZONE_WIDTH = 160  # Chiều rộng vùng an toàn
 SAFE_ZONE_HEIGHT = 120  # Chiều cao vùng an toàn
 MAX_HISTORY = 5  # Số giá trị cho bộ lọc trung bình
 
-esp32_ip = "192.168.218.173"
-esp32_port = 5000
 last_sent_time = 0
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+esp32_ws_url = "ws://192.168.218.173:8080"
+
 try:
-    s.connect((esp32_ip, esp32_port))
-    print("✅ Đã kết nối ESP32")
-except ConnectionRefusedError:
-    print("❌ Không kết nối được ESP32")
+    ws = websocket.WebSocket()
+    ws.connect(esp32_ws_url)
+    print("✅ Đã kết nối ESP32 qua WebSocket")
+except Exception as e:
+    print(f"❌ Không kết nối được ESP32 WebSocket: {e}")
     exit()
 
 def send_command(offset_x, offset_y):
     try:
-        message = f"{offset_x},{offset_y}\n"
-        s.sendall(message.encode())
+        message = {"offset" : f"{offset_x},{offset_y}" }
+        message_json = json.dumps(message)
+        ws.send(message_json)
         print(f"📤 Gửi offset X: {offset_x}, Y: {offset_y}")
     except Exception as e:
-        print(f"❌ Lỗi gửi dữ liệu: {e}")
+        print(f"❌ Lỗi gửi dữ liệu WebSocket: {e}")
 
 class MJPEGStream:
     def __init__(self, url):

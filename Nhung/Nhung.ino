@@ -16,8 +16,7 @@ LiquidCrystal_I2C lcd(0x27, 16, 2);
 // 🟡 WiFi
 const char* ssid = "phamtuu";
 const char* password = "123456789";
-WiFiServer server(5000);
-WiFiClient client;
+
 
 // Định nghĩa chân servo và khởi tạo đối tượng Servo bắn 
 #define SERVO 5
@@ -103,8 +102,6 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
             Serial.printf("[%u] Connected!\n", num);
             break;
         case WStype_TEXT:
-
-
             Serial.printf("[%u] Received text: %s\n", num, payload);
    
               // Tạo bộ phân tích JSON
@@ -169,6 +166,40 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
             else if (command == "STOP") {
                 Serial.println("Arduino: Dừng di chuyển");
                 // Không cần xử lý gì thêm vì servo sẽ giữ nguyên vị trí
+            }
+            if (doc.containsKey("offset")) {
+                String offsetStr = doc["offset"];  // Lấy giá trị offset
+                int commaIndex = offsetStr.indexOf(',');
+                if (commaIndex != -1) {
+                    int offsetX = offsetStr.substring(0, commaIndex).toInt();
+                    int offsetY = offsetStr.substring(commaIndex + 1).toInt();
+
+                    // In ra các giá trị offset nhận được
+                    Serial.printf("📩 Nhận offset X: %d, Y: %d\n", offsetX, offsetY);
+
+                    // Hiệu chỉnh dựa trên FOV (Field of View)
+                    int targetAngleX = currentAngleX + (offsetX * 60.0 / 640.0);
+                    int targetAngleY = currentAngleY + (offsetY * 45.0 / 480.0);
+
+                    // Điều chỉnh góc servo để không vượt quá phạm vi
+                    targetAngleX = constrain(targetAngleX, 0, 180);
+                    targetAngleY = constrain(targetAngleY, 0, 180);
+
+                    Serial.printf("🎯 Target Angle X: %d, Y: %d\n", targetAngleX, targetAngleY);
+
+                    // Điều khiển servo dựa trên các giá trị offset
+                    if (abs(targetAngleX - currentAngleX) > 1) {
+                        moveServoSmooth(servoX, currentAngleX, targetAngleX);
+                    }
+                    if (abs(targetAngleY - currentAngleY) > 1) {
+                        moveServoSmooth(servoY, currentAngleY, targetAngleY);
+                    }
+
+                    currentAngleX = targetAngleX;
+                    currentAngleY = targetAngleY;
+                } else {
+                    Serial.println("⚠️ Dữ liệu offset không hợp lệ");
+                }
             }
             break;
     }
@@ -329,61 +360,6 @@ void loop() {
 
     // Xử lý WebSocket
     webSocket.loop();
-
-    if (client && client.connected()) {
-        while (client.available()) {
-            char c = client.read();
-            if (c == '\n') {
-                input.trim();
-                  if (input == "open") {
-                      openCommandReceived = true;
-                      openStartTime = millis();
-                  } else  if (input.length() > 2 && input.indexOf(',') != -1) {
-                      Serial.printf("🕒 Nhận lúc: %lu ms\n", millis());
-                      int commaIndex = input.indexOf(',');
-                      int offsetX = input.substring(0, commaIndex).toInt();
-                      int offsetY = input.substring(commaIndex + 1).toInt();
-
-                      // Hiệu chỉnh dựa trên FOV (60° ngang, 45° dọc)
-                      int targetAngleX = currentAngleX + (offsetX * 60.0 / 640.0);
-                      int targetAngleY = currentAngleY + (offsetY * 45.0 / 480.0);
-
-                      targetAngleX = constrain(targetAngleX, 0, 180);
-                      targetAngleY = constrain(targetAngleY, 0, 180);
-
-                      Serial.printf("🎯 Offset X: %d, Y: %d | Goc X: %d, Y: %d\n", offsetX, offsetY, targetAngleX, targetAngleY);
-
-
-                      String longText = "   Phat hien ke      dich";
-                      displayLongText(longText);
-
-                      digitalWrite(LED, HIGH); // Bật đèn LED khi chuyen dong
-
-                          if (abs(targetAngleX - currentAngleX) > 1) {
-                              moveServoSmooth(servoX, currentAngleX, targetAngleX);
-                          }
-                          if (abs(targetAngleY - currentAngleY) > 1) {
-                              moveServoSmooth(servoY, currentAngleY, targetAngleY);
-                          }
-
-                      currentAngleX = targetAngleX;
-                      currentAngleY = targetAngleY;
-
-                      lastMoveTime = millis();  // Cập nhật thời gian khi có chuyển động
-                      lastObjectDetectedTime = currentTime; // Cập nhật thời gian phát hiện vật
-                      isObjectDetected = true;  // Đánh dấu đã phát hiện vật
-
-                  }else {
-                          Serial.println("⚠️ Dữ liệu socket không hợp lệ: " + input);
-                        }
-                  input = "";
-            } else {
-                input += c;
-              }
-        }
-    }
-
-    
 
         // Nếu không phát hiện vật trong 10 giây, tắt đèn và hiển thị "Không phát hiện vật"
         if (isObjectDetected && currentTime - lastObjectDetectedTime > 10000) {
