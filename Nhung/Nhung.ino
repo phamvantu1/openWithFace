@@ -50,13 +50,47 @@ bool isObjectDetected = false;  // Biến để theo dõi việc phát hiện v�
 
 unsigned long openStartTime = 0;
 const unsigned long openDuration = 3000;
-
-
 bool openCommandReceived = false;
+
+
+bool checkOpenRadar = false;
+
+
+unsigned long lastDistanceTime = 0;
+int currentDistance = 0;
+
+
+Servo servoScan;
+const int servoScanPin = 27; // Chọn 1 chân digital chưa dùng
+int ultrasonicDistance;
 
 // 📩 Dữ liệu từ socket
 String input = "";
 bool isFiring = false;
+
+
+unsigned long lastRadarScan = 0;
+const unsigned long radarInterval = 50; // ms
+int scanAngle = 0;
+bool increasing = true;
+
+void handleRadarScan() {
+    if (millis() - lastRadarScan >= radarInterval && checkOpenRadar) {
+        lastRadarScan = millis();
+        servoScan.write(scanAngle);
+        delay(5); // cho servo kịp quay, nên dùng millis nếu muốn tối ưu hơn
+        int distance = calculateDistance();
+        sendRadarData(scanAngle, distance);
+
+        if (increasing) {
+            scanAngle += 5;
+            if (scanAngle >= 180) increasing = false;
+        } else {
+            scanAngle -= 5;
+            if (scanAngle <= 0) increasing = true;
+        }
+    }
+}
 
 
 // Hàm xử lý sự kiện WebSocket
@@ -107,18 +141,30 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
                 newAngleX = constrain(newAngleX, 0, 180);
                 moveServoSmooth(servoX, currentAngleX, newAngleX);
             }
-            else if (command == "ArrowRight") {
-                Serial.println("Arduino: Di chuyển sang phải");
-                // Di chuyển servoX sang phải (tăng góc)
-                int newAngleX = currentAngleX + 10;
-                newAngleX = constrain(newAngleX, 0, 180);
-                moveServoSmooth(servoX, currentAngleX, newAngleX);
-            }
+            // else if (command == "ArrowRight") {
+            //     Serial.println("Arduino: Di chuyển sang phải");
+            //     // Di chuyển servoX sang phải (tăng góc)
+            //     int newAngleX = currentAngleX + 10;
+            //     newAngleX = constrain(newAngleX, 0, 180);
+            //     moveServoSmooth(servoX, currentAngleX, newAngleX);
+            // }
+            
+            // else if (command == "Space") {
+            //     Serial.println("Arduino: Bắn");
+            //     // Xử lý bắn
+            //     openCommandReceived = true;
+            //     openStartTime = millis();
+            // }
             else if (command == "Space") {
-                Serial.println("Arduino: Bắn");
-                // Xử lý bắn
-                openCommandReceived = true;
-                openStartTime = millis();
+                Serial.println("Arduino: mở radar");
+                // Xử lý radar
+                checkOpenRadar = true;
+                
+            }else if (command == "ArrowRight") {
+                Serial.println("Arduino: đóng radar");
+                // Xử lý radar
+                checkOpenRadar = false;
+                
             }
             else if (command == "STOP") {
                 Serial.println("Arduino: Dừng di chuyển");
@@ -180,7 +226,13 @@ void setup() {
 
     Serial.println("LCD Displayed");
 
+
+    servoScan.attach(servoScanPin); // Gắn servo quét
+
+
 }
+
+
 
 void displayLongText(String text) {
     lcd.clear();
@@ -217,6 +269,44 @@ void moveServoSmooth(Servo& servo, int& currentAngle, int targetAngle) {
     }
     currentAngle = targetAngle;
     servo.write(currentAngle);
+}
+
+
+// Cấu trúc JSON để gửi thông tin về khoảng cách và góc
+void sendRadarData(int angle, int distance) {
+    // Tạo đối tượng JSON
+    StaticJsonDocument<200> doc;
+    doc["radar"]["goc"] = angle;
+    doc["radar"]["kc"] = distance;
+
+    // Chuyển đối tượng JSON thành chuỗi
+    String output;
+    serializeJson(doc, output);
+
+    // Gửi dữ liệu qua WebSocket
+    // webSocket.sendTXT(0, output);  // 0 là chỉ số của client (điều chỉnh nếu có nhiều client)
+
+    webSocket.broadcastTXT(output);
+
+    // In ra console để kiểm tra
+    Serial.println(output);
+
+}
+
+// Đo khoảng cách (có timeout tránh block hệ thống)
+int calculateDistance() {
+  digitalWrite(TRIG_PIN, LOW);
+  delayMicroseconds(2);
+  digitalWrite(TRIG_PIN, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(TRIG_PIN, LOW);
+
+  long duration = pulseIn(ECHO_PIN, HIGH, 20000); // Timeout 20ms (tương đương ~3.4m)
+
+  if (duration == 0) return -1; // Không đo được
+
+  int distance = duration * 0.034 / 2;
+  return distance;
 }
 
 
@@ -326,6 +416,13 @@ void loop() {
         
           openCommandReceived = false;
         }
-    
+
+
+      // xử lý radar quét
+      if ( checkOpenRadar ){
+        handleRadarScan();
+      }
+   
+
 
 }
