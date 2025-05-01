@@ -1,7 +1,7 @@
 from flask import Flask, jsonify
 import speech_recognition as sr
 
-from Python.ESP32 import send_command
+from Python.ESP32 import send_command, send_command_string
 
 
 # Hàm nhận diện giọng nói và thực hiện hành động
@@ -10,7 +10,7 @@ def recognize_speech():
 
     # Sử dụng microphone làm nguồn thu âm
     with sr.Microphone() as source:
-        print("Hãy nói 'Mở cửa'...")
+        print("Hãy nói 'vào micro đi bạn'...")
         recognizer.adjust_for_ambient_noise(source)  # Cân chỉnh tiếng ồn xung quanh
         audio = recognizer.listen(source)
 
@@ -19,11 +19,27 @@ def recognize_speech():
         command = recognizer.recognize_google(audio, language='vi-VN')
         print(f"Bạn đã nói: {command}")
 
-        # Kiểm tra nếu người dùng nói "mở cửa"
-        if "mở cửa" in command.lower():
-            print(f" toi da mo cua roi ")
-            send_command("open")
-            return "Mở cửa"
+        # Kiểm tra nếu người dùng nói "bắn"
+        if "bắn" in command.lower():
+            print(f" tôi đã nói bắn")
+            send_command_string("open")
+            return "Bắn"
+        elif "sang trái" in command.lower():
+            print(f" tôi đã nói sang trái ")
+            send_command_string("left")
+            return "sang trái"
+        elif "sang phải" in command.lower():
+            print(f" tôi đã nói sang phải")
+            send_command_string("right")
+            return "sang phải"
+        elif "lên trên" in command.lower():
+            print(f" tôi đã nói lên trên")
+            send_command_string("up")
+            return "lên trên"
+        elif "xuống dưới" in command.lower():
+            print(f" tôi đã nói xuống dưới")
+            send_command_string("down")
+            return "xuống dưới"
         else:
             return "Lệnh không rõ ràng"
 
