@@ -55,6 +55,8 @@ bool openCommandReceived = false;
 
 bool checkOpenRadar = false;
 
+bool checkNapDanThanhCong = false;
+
 
 unsigned long lastDistanceTime = 0;
 int currentDistance = 0;
@@ -163,6 +165,12 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
                 Serial.println("Arduino: đóng radar");
                 // Xử lý radar
                 checkOpenRadar = false;
+
+            }
+            else if (command == "reload") {
+                Serial.println("Arduino: nạp đạn thành công");
+                // Xử lý nạp đạn
+                checkNapDanThanhCong = true;
 
             }
             else if (command == "STOP") {
@@ -292,6 +300,24 @@ void sendRadarData(int angle, int distance) {
 
 }
 
+// gửi biến cờ sang cho fe để check bắn thành công hay thất bại
+void sendCheckSuccess(bool checkFiringStatus) {
+    // Tạo đối tượng JSON
+    StaticJsonDocument<100> doc;
+    doc["checkFiringStatus"] = checkFiringStatus;
+
+    // Chuyển đối tượng JSON thành chuỗi
+    String output;
+    serializeJson(doc, output);
+
+    // Gửi qua WebSocket
+    webSocket.broadcastTXT(output);
+
+    // In ra Serial để debug
+    Serial.println(output);
+}
+
+
 // Đo khoảng cách (có timeout tránh block hệ thống)
 int calculateDistance() {
   digitalWrite(TRIG_PIN, LOW);
@@ -405,15 +431,30 @@ void loop() {
             digitalWrite(SIREN_PIN, LOW);       // Đảm bảo tắt còi nếu không phát hiện
         }
 
+        // xử lý bắn
+        if (openCommandReceived && checkNapDanThanhCong ){
+                // doorServo.write(0); // Open súng
 
-       // xử lý bắn
-        if (openCommandReceived && (millis() - openStartTime < openDuration)) {
-        doorServo.write(0); // Open súng
+                sendCheckSuccess(true);
+                Serial.println("Bắn thành công");
 
-        } else {
-          doorServo.write(90); // Close súng
-
-          openCommandReceived = false;
+                String longText = " Ban thanh cong   ";
+                displayLongText(longText);
+                doorServo.write(0); // Open súng
+                delay(2000);
+                // bắn thành công rồi thì coi như hết đạn 
+                checkNapDanThanhCong = false;
+                openCommandReceived = false;
+                // doorServo.write(90);
+        }else if (openCommandReceived &&  !checkNapDanThanhCong){
+          sendCheckSuccess(false);
+          String longText = "  Khong co dan  ";
+                displayLongText(longText);
+                Serial.println("không có đạn để bắn");
+                // không bắn được thì set lại thôi
+                openCommandReceived = false;
+        } else if (!openCommandReceived) {
+            doorServo.write(90); // Close súng nếu không còn lệnh bắn
         }
 
 
