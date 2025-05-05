@@ -141,26 +141,25 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
                 newAngleX = constrain(newAngleX, 0, 180);
                 moveServoSmooth(servoX, currentAngleX, newAngleX);
             }
-            // else if (command == "ArrowRight") {
-            //     Serial.println("Arduino: Di chuyển sang phải");
-            //     // Di chuyển servoX sang phải (tăng góc)
-            //     int newAngleX = currentAngleX + 10;
-            //     newAngleX = constrain(newAngleX, 0, 180);
-            //     moveServoSmooth(servoX, currentAngleX, newAngleX);
-            // }
-
-            // else if (command == "Space") {
-            //     Serial.println("Arduino: Bắn");
-            //     // Xử lý bắn
-            //     openCommandReceived = true;
-            //     openStartTime = millis();
-            // }
+            else if (command == "ArrowRight") {
+                Serial.println("Arduino: Di chuyển sang phải");
+                // Di chuyển servoX sang phải (tăng góc)
+                int newAngleX = currentAngleX + 10;
+                newAngleX = constrain(newAngleX, 0, 180);
+                moveServoSmooth(servoX, currentAngleX, newAngleX);
+            } 
             else if (command == "Space") {
+                Serial.println("Arduino: Bắn");
+                // Xử lý bắn
+                openCommandReceived = true;
+                openStartTime = millis();
+            }
+            else if (command == "open_radar") {
                 Serial.println("Arduino: mở radar");
                 // Xử lý radar
                 checkOpenRadar = true;
 
-            }else if (command == "ArrowRight") {
+            }else if (command == "close_radar") {
                 Serial.println("Arduino: đóng radar");
                 // Xử lý radar
                 checkOpenRadar = false;

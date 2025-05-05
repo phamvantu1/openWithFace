@@ -3,12 +3,13 @@ from flask_cors import CORS
 import time
 import os
 import pyotp
+import asyncio
 import speech_recognition as sr
 import mysql.connector
 from mysql.connector import Error
 import socket
 
-from Python.ESP32 import send_command, send_command_string
+from Python.ESP32 import send_command
 from Python.Send_Email import send_email_with_image
 from Python.database import getAttendanceTime, addAttendanceTime, addAttendanceTimeV2, check_user_login, \
     get_shoot_history, save_shoot_history, get_discovery_history, save_discovery_history, get_first_bullet
@@ -46,10 +47,11 @@ def send_custom_command():
         if not command:
             return jsonify({"status": "error", "message": "Thiếu trường 'command'"}), 400
 
-        if send_command_string(command):
-            return jsonify({"status": "success", "message": f"Lệnh '{command}' đã được gửi"}), 200
+        result = asyncio.run(send_command(command))
+        if result:
+            return jsonify({"status": "success", "message": "Lệnh đã gửi WebSocket"}), 200
         else:
-            return jsonify({"status": "error", "message": "Gửi lệnh thất bại hoặc gửi quá nhanh"}), 429
+            return jsonify({"status": "error", "message": "Gửi thất bại hoặc quá nhanh"}), 429
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
@@ -59,18 +61,19 @@ def send_custom_command():
 def control_servo():
     try:
         data = request.get_json()
-        offset_x = data.get('offset_x', 0)
-        offset_y = data.get('offset_y', 0)
+        key = data.get('key')  # frontend gửi { "key": "ArrowUp" }
 
-        if offset_x == 0 and offset_y == 0:
-            return jsonify({"status": "error", "message": "Không có lệnh di chuyển được gửi"}), 400
+        if not key:
+            return jsonify({"status": "error", "message": "Thiếu key"}), 400
 
-        if send_command(offset_x, offset_y):
-            return jsonify({"status": "success", "message": "Lệnh di chuyển đã được gửi thành công"}), 200
+        result = asyncio.run(send_command(key))
+        if result:
+            return jsonify({"status": "success", "message": "Lệnh đã gửi WebSocket"}), 200
         else:
-            return jsonify({"status": "error", "message": "Gửi lệnh thất bại hoặc gửi quá nhanh"}), 429
+            return jsonify({"status": "error", "message": "Gửi thất bại hoặc quá nhanh"}), 429
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
+
 
 #  API nhận diện giọng nói
 @app.route('/voice-command', methods=['GET'])
@@ -185,7 +188,8 @@ def reload():
         if not command:
             return jsonify({"status": "error", "message": "Thiếu trường 'command'"}), 400
 
-        if send_command_string(command):
+        success = asyncio.run(send_command(command))
+        if success:
             return jsonify({"status": "success", "message": f"Lệnh '{command}' đã được gửi"}), 200
         else:
             return jsonify({"status": "error", "message": "Gửi lệnh thất bại hoặc gửi quá nhanh"}), 429

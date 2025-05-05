@@ -1,7 +1,8 @@
 from flask import Flask, jsonify
 import speech_recognition as sr
+from Python.ESP32 import send_command
 
-from Python.ESP32 import send_command, send_command_string
+import asyncio
 
 
 # Hàm nhận diện giọng nói và thực hiện hành động
@@ -20,25 +21,25 @@ def recognize_speech():
         print(f"Bạn đã nói: {command}")
 
         # Kiểm tra nếu người dùng nói "bắn"
-        if "bắn" in command.lower():
+        if "tấn công" in command.lower():
             print(f" tôi đã nói bắn")
-            send_command_string("open")
+            asyncio.run(send_command("Space"))
             return "Bắn"
         elif "sang trái" in command.lower():
             print(f" tôi đã nói sang trái ")
-            send_command_string("left")
+            asyncio.run(send_command("ArrowLeft"))
             return "sang trái"
         elif "sang phải" in command.lower():
             print(f" tôi đã nói sang phải")
-            send_command_string("right")
+            asyncio.run(send_command("ArrowRight"))
             return "sang phải"
         elif "lên trên" in command.lower():
             print(f" tôi đã nói lên trên")
-            send_command_string("up")
+            asyncio.run(send_command("ArrowUp"))
             return "lên trên"
         elif "xuống dưới" in command.lower():
             print(f" tôi đã nói xuống dưới")
-            send_command_string("down")
+            asyncio.run(send_command("ArrowDown"))
             return "xuống dưới"
         else:
             return "Lệnh không rõ ràng"
