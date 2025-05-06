@@ -57,6 +57,8 @@ bool checkOpenRadar = false;
 
 bool checkNapDanThanhCong = false;
 
+bool objectLocked = false;
+
 
 unsigned long lastDistanceTime = 0;
 int currentDistance = 0;
@@ -89,6 +91,17 @@ void handleRadarScan() {
         //     Serial.printf("📍 Vật ở gần tại góc %d, khoảng cách: %d cm\n", scanAngle, distance);
         //     moveServoSmooth(servoX, currentAngleX, scanAngle);
         // }
+        // Nếu phát hiện vật gần và chưa xử lý trước đó
+        if (distance > 0 && distance < 20 && !objectLocked) {
+            Serial.printf("📍 Vật ở gần tại góc %d, khoảng cách: %d cm\n", scanAngle, distance);
+            moveServoSmooth(servoX, currentAngleX, scanAngle);  // quay X đến hướng đó
+            objectLocked = true;  // khóa không xử lý lại nữa
+        }
+
+        // Nếu vật đã rời xa (>21cm), reset cờ để lần sau xử lý tiếp
+        if (distance > 21 && objectLocked) {
+            objectLocked = false;
+        }
 
         if (increasing) {
             scanAngle += 5;
