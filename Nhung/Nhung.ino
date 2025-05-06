@@ -80,9 +80,15 @@ void handleRadarScan() {
     if (millis() - lastRadarScan >= radarInterval && checkOpenRadar) {
         lastRadarScan = millis();
         servoScan.write(scanAngle);
-        delay(5); // cho servo kịp quay, nên dùng millis nếu muốn tối ưu hơn
+        delay(1000); //  cho delay 1s để gửi cho fe , tránh gửi liên tục
         int distance = calculateDistance();
         sendRadarData(scanAngle, distance);
+
+        // //  Nếu phát hiện vật ở gần (dưới 20cm), quay trục X đến hướng đó
+        // if (distance > 0 && distance < 20) {
+        //     Serial.printf("📍 Vật ở gần tại góc %d, khoảng cách: %d cm\n", scanAngle, distance);
+        //     moveServoSmooth(servoX, currentAngleX, scanAngle);
+        // }
 
         if (increasing) {
             scanAngle += 5;
