@@ -12,7 +12,8 @@ import socket
 from Python.ESP32 import send_command
 from Python.Send_Email import send_email_with_image
 from Python.database import getAttendanceTime, addAttendanceTime, addAttendanceTimeV2, check_user_login, \
-    get_shoot_history, save_shoot_history, get_discovery_history, save_discovery_history, get_first_bullet
+    get_shoot_history, save_shoot_history, get_discovery_history, save_discovery_history, get_first_bullet, \
+    get_total_discovery_history, get_total_shoot_history, decrease_bullet
 from Python.voiceController import recognize_speech
 from flask import session
 import secrets
@@ -171,7 +172,17 @@ def create_shoot_history():
 
         success = save_shoot_history(username, status)
 
+        # if success:
+        #     return jsonify({"status": "success", "message": "Lưu lịch sử bắn thành công"}), 200
         if success:
+            # Nếu status là success thì trừ đạn
+            if status == 'Thành công':
+                bullet_decreased = decrease_bullet()
+                if not bullet_decreased:
+                    return jsonify({
+                        "status": "warning",
+                        "message": "Lưu lịch sử bắn thành công nhưng không thể trừ đạn (có thể hết đạn)"
+                    }), 200
             return jsonify({"status": "success", "message": "Lưu lịch sử bắn thành công"}), 200
         else:
             return jsonify({"status": "error", "message": "Lưu lịch sử bắn thất bại"}), 500
@@ -272,6 +283,47 @@ def fetch_first_bullet():
             "message": str(e)
         }), 500
 
+
+@app.route('/discovery-history/total', methods=['GET'])
+def get_total_discovery_history_count():
+    try:
+        total = get_total_discovery_history()
+        if total is not None:
+            return jsonify({
+                "status": "success",
+                "total": total
+            }), 200
+        else:
+            return jsonify({
+                "status": "error",
+                "message": "Không thể lấy tổng số bản ghi"
+            }), 500
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
+
+
+@app.route('/shoot-history/total', methods=['GET'])
+def get_total_shoot_history_count():
+    try:
+        total = get_total_shoot_history()
+        if total is not None:
+            return jsonify({
+                "status": "success",
+                "total": total
+            }), 200
+        else:
+            return jsonify({
+                "status": "error",
+                "message": "Không thể lấy tổng số bản ghi"
+            }), 500
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
 
 
 

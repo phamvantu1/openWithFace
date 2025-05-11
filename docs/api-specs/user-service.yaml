@@ -1,0 +1,91 @@
+openapi: 3.0.0
+info:
+  title: User Service API
+  version: 1.0.0
+  description: API for user authentication and student information retrieval in the book borrowing system.
+paths:
+  /login:
+    post:
+      summary: Authenticate student and return JWT token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  example: student705
+                password:
+                  type: string
+                  example: password123
+      responses:
+        '200':
+          description: Successful login
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+        '500':
+          description: Internal server error
+  /students/{student_id}:
+    get:
+      summary: Get student information by ID
+      parameters:
+        - name: student_id
+          in: path
+          required: true
+          schema:
+            type: integer  
+            example: 1
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  student_id:
+                    type: integer
+                    example: 1
+                  username:
+                    type: string
+                    example: student705
+                  email:
+                    type: string
+                    example: student1@example.com
+                  first_name:
+                    type: string
+                    example: Quang Tien
+                  last_name:
+                    type: string
+                    example: Ngo The
+                  msv:
+                    type: string
+                    example: B21DCCN705
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Student not found
+        '500':
+          description: Internal server error
+      security:
+        - bearerAuth: []
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

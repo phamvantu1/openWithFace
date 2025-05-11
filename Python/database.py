@@ -153,3 +153,60 @@ def removeAttendanceTimeByKey(id):
     values = (id,)
     cursor.execute(query, values)
     conn.commit()
+
+
+def get_total_discovery_history():
+    try:
+        conn = mysql.connector.connect(**db_config)
+        cursor = conn.cursor()
+        query = "SELECT COUNT(*) FROM discovery_history"
+        cursor.execute(query)
+        total = cursor.fetchone()[0]
+        cursor.close()
+        conn.close()
+        return total
+    except Error as e:
+        print(f"Lỗi đếm tổng số bản ghi discovery_history: {str(e)}")
+        return None
+
+def get_total_shoot_history():
+    try:
+        conn = mysql.connector.connect(**db_config)
+        cursor = conn.cursor()
+        query = "SELECT COUNT(*) FROM history_shoot"
+        cursor.execute(query)
+        total = cursor.fetchone()[0]
+        cursor.close()
+        conn.close()
+        return total
+    except Error as e:
+        print(f"Lỗi đếm tổng số bản ghi history_shoot: {str(e)}")
+        return None
+
+
+# Trừ đạn
+def decrease_bullet():
+    try:
+        conn = mysql.connector.connect(**db_config)
+        cursor = conn.cursor()
+
+        # Lấy số đạn hiện tại
+        query = "SELECT * FROM bullet ORDER BY id ASC LIMIT 1"
+        cursor.execute(query)
+        current_bullet = cursor.fetchone()
+
+        if current_bullet and current_bullet[1] > 0:  # Giả sử cột số lượng đạn là cột thứ 2
+            # Trừ 1 viên đạn
+            update_query = "UPDATE bullet SET number = number - 1 WHERE id = %s"
+            cursor.execute(update_query, (current_bullet[0],))
+            conn.commit()
+            cursor.close()
+            conn.close()
+            return True
+        else:
+            cursor.close()
+            conn.close()
+            return False
+    except Error as e:
+        print(f"Error decreasing bullet: {str(e)}")
+        return False

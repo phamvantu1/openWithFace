@@ -1,0 +1,55 @@
+openapi: 3.0.0
+info:
+  title: Process Borrowing API
+  version: 1.0.0
+  description: API for initiating the borrowing or returning process in the book borrowing system.
+paths:
+  /borrowing:
+    post:
+      summary: Initiate borrowing or returning process
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                student_id:
+                  type: integer
+                  example: 1
+                book_id:
+                  type: string 
+                  example: B001
+                action:
+                  type: string
+                  enum: [borrow, return]
+                  example: borrow
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Book borrowed successfully
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: Student or book not found
+        '500':
+          description: Internal server error
+      security:
+        - bearerAuth: []
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

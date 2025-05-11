@@ -1,0 +1,32 @@
+openapi: 3.0.0
+info:
+  title: Validate Token API
+  version: 1.0.0
+  description: API for validating JWT tokens in the book borrowing system.
+paths:
+  /validate-token:
+    get:
+      summary: Validate JWT token and return student ID
+      responses:
+        '200':
+          description: Successful validation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  student_id:
+                    type: integer
+                    example: 1
+        '401':
+          description: Invalid token
+        '500':
+          description: Internal server error
+      security:
+        - bearerAuth: []
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

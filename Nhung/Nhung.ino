@@ -16,6 +16,7 @@ LiquidCrystal_I2C lcd(0x27, 16, 2);
 // 🟡 WiFi
 const char* ssid = "phamtuu";
 const char* password = "123456789";
+
 WiFiServer server(5000);
 WiFiClient client;
 
@@ -38,6 +39,7 @@ int currentAngleY = 60;
 // 🟠 Servo bắn
 #define FIRE_SERVO_PIN 5
 #define LED 14
+#define LIGHT_SENSOR_PIN 23  
 Servo FireServo;
 
 // còi
@@ -54,10 +56,9 @@ bool openCommandReceived = false;
 
 
 bool checkOpenRadar = false;
+bool objectLocked = false;
 
 bool checkNapDanThanhCong = false;
-
-bool objectLocked = false;
 
 
 unsigned long lastDistanceTime = 0;
@@ -95,12 +96,14 @@ void handleRadarScan() {
         if (distance > 0 && distance < 20 && !objectLocked) {
             Serial.printf("📍 Vật ở gần tại góc %d, khoảng cách: %d cm\n", scanAngle, distance);
             moveServoSmooth(servoX, currentAngleX, scanAngle);  // quay X đến hướng đó
+            digitalWrite(SIREN_PIN, HIGH);
             objectLocked = true;  // khóa không xử lý lại nữa
         }
 
         // Nếu vật đã rời xa (>21cm), reset cờ để lần sau xử lý tiếp
         if (distance > 21 && objectLocked) {
             objectLocked = false;
+            digitalWrite(SIREN_PIN, LOW);
         }
 
         if (increasing) {
@@ -235,6 +238,8 @@ void setup() {
     pinMode(TRIG_PIN, OUTPUT);
     pinMode(ECHO_PIN, INPUT);
 
+    pinMode(LIGHT_SENSOR_PIN, INPUT);
+
     // LED
     pinMode(LED, OUTPUT);
     digitalWrite(LED, LOW);
@@ -272,6 +277,16 @@ void displayLongText(String text) {
         lcd.print(part);  // In phần của chuỗi vào LCD
     }
 }
+void checkLightAndControl() {
+    int lightValue = digitalRead(LIGHT_SENSOR_PIN);
+
+    if (lightValue == HIGH) {  // Khi trời tối
+        digitalWrite(LED, HIGH);
+    } else {
+        digitalWrite(LED, LOW);
+    }
+}
+
 
 // 📏 Đo khoảng cách
 float readDistanceCM() {
@@ -373,6 +388,7 @@ void loop() {
 
     // Xử lý WebSocket
     webSocket.loop();
+    checkLightAndControl();
 
     if (client && client.connected()) {
         while (client.available()) {

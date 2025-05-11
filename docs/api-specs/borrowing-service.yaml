@@ -1,0 +1,168 @@
+openapi: 3.0.0
+info:
+  title: Borrowing Service API
+  version: 1.0.0
+  description: API for managing book borrowing and returning transactions in the book borrowing system.
+paths:
+  /borrow:
+    post:
+      summary: Borrow a book
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                student_id: 
+                  type: integer
+                  example: 1
+                book_id:
+                  type: string
+                  example: B001
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Book borrowed successfully
+        '400':
+          description: Bad request
+        '404':
+          description: Book or student not found
+        '500':
+          description: Internal server error
+      security:
+        - bearerAuth: []
+  /return:
+    post:
+      summary: Return a book
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                student_id: 
+                  type: integer
+                  example: 1
+                book_id:
+                  type: string
+                  example: B001
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Book returned successfully
+        '400':
+          description: Bad request
+        '404':
+          description: Book or student not found
+        '500':
+          description: Internal server error
+      security:
+        - bearerAuth: []
+  /borrowing-table/{student_id}:
+    get:
+      summary: Get borrowing records for a student
+      parameters:
+        - name: student_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    borrowing_id:
+                      type: integer
+                      example: 1
+                    student_id:
+                      type: integer
+                      example: 1
+                    book_id:
+                      type: string
+                      example: B001
+                    borrowed_date:
+                      type: string
+                      format: date-time
+                      example: "2025-05-01T00:00:00Z"
+                    returned_date:
+                      type: string
+                      format: date-time
+                      example: "2024-05-08T00:00:00Z"
+        '404':
+          description: No borrowing records found for the student
+        '500':
+          description: Internal server error
+      security:
+        - bearerAuth: []
+  /borrowing-history/{student_id}:
+    get:
+      summary: Get borrowing history for a student
+      parameters:
+        - name: student_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    borrowing_id:
+                      type: integer
+                      example: 1
+                    student_id:
+                      type: integer
+                      example: 1
+                    book_id:
+                      type: string
+                      example: B001
+                    borrowed_date:
+                      type: string
+                      format: date-time
+                      example: "2025-05-01T00:00:00Z"
+                    returned_date:
+                      type: string
+                      format: date-time
+                      example: "2024-05-08T00:00:00Z"
+        '404':
+          description: No borrowing records found for the student
+        '500':
+          description: Internal server error
+      security:
+        - bearerAuth: []
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

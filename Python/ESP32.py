@@ -2,7 +2,7 @@ import asyncio
 import websockets
 import json
 
-ws_url = "ws://192.168.218.173:8080"
+ws_url = "ws://192.168.126.173:8080"
 min_send_interval = 0.1
 last_send_time = 0
 

@@ -1,9 +1,7 @@
 import cv2
 import numpy as np
-import websocket
+import socket
 import time
-import json
-import requests
 import tensorflow as tf
 from tensorflow.keras.models import load_model
 from tensorflow.keras.layers import DepthwiseConv2D
@@ -24,7 +22,7 @@ class CustomDepthwiseConv2D(DepthwiseConv2D):
 
 # Load model
 try:
-    model = load_model("keras_model_1.h5", custom_objects={'DepthwiseConv2D': CustomDepthwiseConv2D})
+    model = load_model("keras_model.h5", custom_objects={'DepthwiseConv2D': CustomDepthwiseConv2D})
     print("✅ Đã tải mô hình thành công")
 except Exception as e:
     print(f"❌ Lỗi tải mô hình: {e}")
@@ -32,7 +30,7 @@ except Exception as e:
 
 # Load labels
 try:
-    labels = open("labels_1.txt", "r").read().splitlines()
+    labels = open("labels.txt", "r").read().splitlines()
     print(f"✅ Đã tải {len(labels)} nhãn")
 except Exception as e:
     print(f"❌ Lỗi tải labels.txt: {e}")
@@ -44,25 +42,34 @@ SAFE_ZONE_WIDTH = 160  # Chiều rộng vùng an toàn
 SAFE_ZONE_HEIGHT = 120  # Chiều cao vùng an toàn
 MAX_HISTORY = 5  # Số giá trị cho bộ lọc trung bình
 
+esp32_ip = "192.168.126.173"
+esp32_port = 5000
 last_sent_time = 0
-esp32_ws_url = "ws://192.168.218.173:8080"
-
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 try:
-    ws = websocket.WebSocket()
-    ws.connect(esp32_ws_url)
-    print("✅ Đã kết nối ESP32 qua WebSocket")
-except Exception as e:
-    print(f"❌ Không kết nối được ESP32 WebSocket: {e}")
+    s.connect((esp32_ip, esp32_port))
+    print("✅ Đã kết nối ESP32")
+except ConnectionRefusedError:
+    print("❌ Không kết nối được ESP32")
     exit()
 
 def send_command(offset_x, offset_y):
     try:
-        message = {"offset" : f"{offset_x},{offset_y}" }
-        message_json = json.dumps(message)
-        ws.send(message_json)
+        message = f"{offset_x},{offset_y}\n"
+        s.sendall(message.encode())
         print(f"📤 Gửi offset X: {offset_x}, Y: {offset_y}")
     except Exception as e:
-        print(f"❌ Lỗi gửi dữ liệu WebSocket: {e}")
+        print(f"❌ Lỗi gửi dữ liệu: {e}")
+
+def send_command_open(s):
+    try:
+        print("bắn địch")
+        message = "open\n"
+        s.sendall(message.encode())
+        print("📤 Đã gửi lệnh: open")
+    except Exception as e:
+        print(f"❌ Lỗi gửi dữ liệu: {e}")
+
 
 class MJPEGStream:
     def __init__(self, url):
@@ -85,7 +92,7 @@ class MJPEGStream:
         self.running = False
         self.stream.release()
 
-cap = MJPEGStream("http://192.168.218.72:81/stream")
+cap = MJPEGStream("http://192.168.126.72:81/stream")
 
 tracker = None
 tracking = False
@@ -201,7 +208,7 @@ while True:
                         current_object = None
                         print("🛑 Dừng theo dõi do phát hiện vật C")
 
-                    elif detected_label in ["0 A", "1 B"]:
+                    elif detected_label in ["0 Quan_dich", "1 Quan_ta"]:
                         x = frame.shape[1]//2 - 75  # 320 - 75 = 245
                         y = frame.shape[0]//2 - 75  # 240 - 75 = 165
                         box = (x, y, 160, 120)  # Hộp 150x150, tâm tại (320, 240)
@@ -211,6 +218,8 @@ while True:
                         tracking = True
                         current_object = detected_label
                         print(f"🚀 Bắt đầu theo dõi {detected_label}")
+                        if detected_label == "0 Quan_dich":
+                            send_command_open(s)
 
             except Exception as e:
                 print(f"❌ Lỗi dự đoán mô hình: {e}")

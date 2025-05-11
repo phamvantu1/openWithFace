@@ -1,0 +1,47 @@
+openapi: 3.0.0
+info:
+  title: Notification Service API
+  version: 1.0.0
+  description: API for sending notifications to students in the book borrowing system.
+paths:
+  /notification:
+    post:
+      summary: Send notification to student
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                student_id: 
+                  type: integer
+                  example: 1
+                message:
+                  type: string
+                  example: Book borrowed successfully
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Notification sent successfully
+        '400':
+          description: Bad request
+        '404':
+          description: Student not found
+        '500':
+          description: Internal server error
+      security:
+        - bearerAuth: []
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

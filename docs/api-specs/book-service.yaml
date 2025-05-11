@@ -1,0 +1,107 @@
+openapi: 3.0.0
+info:
+  title: Book Service API
+  version: 1.0.0
+  description: API for retrieving book information in the book borrowing system.
+paths:
+  /books:
+    get:
+      summary: Get list of books
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      example: 1
+                    book_id:
+                      type: string
+                      example: B001
+                    title:
+                      type: string
+                      example: Sample Book
+                    author:
+                      type: string
+                      example: Author Name
+                    available:
+                      type: boolean
+                      example: true
+        '400':
+          description: Bad request
+        '500':
+          description: Internal server error
+      security:
+        - bearerAuth: []
+  /books/{book_id}:
+    get:
+      summary: Get book details by ID
+      parameters:
+        - name: book_id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: B001
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  book_id:
+                    type: string
+                    example: B001
+                  title:
+                    type: string
+                    example: Sample Book
+                  author:
+                    type: string
+                    example: Author Name
+                  cover_image:
+                    type: string
+                    example:https://99designs-blog.imgix.net/blog/wp-content/uploads/2017/02/attachment_59143595-e1488217285764.jpg?auto=format&q=60&fit=max&w=930
+                  available:
+                    type: boolean
+                    example: true
+        '404':
+          description: Book not found
+        '500':
+          description: Internal server error
+      security:
+        - bearerAuth: []
+      /books/change-avaliabity/{book_id}:
+        post:
+          summary: Change book availability by ID
+          parameters:
+            - name: book_id
+              in: path
+              required: true
+              schema:
+                type: integer
+                example: 1
+          responses:
+            '200':
+              description: Successful operation
+            '404':
+              description: Book not found
+            '500':
+              description: Internal server error
+          security:
+            - bearerAuth: []
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
